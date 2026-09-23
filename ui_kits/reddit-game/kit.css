@@ -354,5 +354,5 @@ input.guess::placeholder { color: rgba(0,91,111,0.45); font-weight: 600; }
 @container (max-height: 580px) {
   .kb-host.is-typing .kb-topchrome { display: none; }
   .kb-host.is-typing .kb-cluehead > div:first-child { width: 24px !important; height: 24px !important; font-size: 12px !important; }
-  .kb-host.is-typing .kb-cluehead .dt { font-size: 17px !important; }
+  .kb-host.is-typing .kb-cluehead .dt { --fit-max: 17; }  /* FitText reads this as its ceiling */
 }

@@ -47,6 +47,59 @@ function GuessedPill({ name, correct }) {
   );
 }
 
+// FitText — one-line display heading that shrinks to fit its width.
+// Starts at `max` px (or the CSS var --fit-max when set, e.g. the compact
+// typing layout) and scales down to `min`; only below `min` does it
+// ellipsis. Re-fits on resize, on text change, and when `fitKey` changes.
+function FitText({ children, max = 22, min = 13, fitKey, className = 'dt', style }) {
+  const ref = React.useRef(null);
+  const [size, setSize] = React.useState(max);
+  const [clip, setClip] = React.useState(false);
+
+  const fit = React.useCallback(() => {
+    const el = ref.current;
+    if (!el) return;
+    const cssMax = parseFloat(getComputedStyle(el).getPropertyValue('--fit-max'));
+    const top = Number.isFinite(cssMax) ? Math.min(cssMax, max) : max;
+    el.style.fontSize = top + 'px';
+    const avail = el.clientWidth;
+    const need = el.scrollWidth;
+    let next = top;
+    if (need > avail && avail > 0) next = Math.max(min, Math.floor(top * avail / need * 10) / 10);
+    el.style.fontSize = next + 'px';
+    // Nudge down until it truly fits (stroke/letter-spacing aren't linear).
+    while (next > min && el.scrollWidth > el.clientWidth) {
+      next = Math.max(min, next - 0.5);
+      el.style.fontSize = next + 'px';
+    }
+    setSize(next);
+    setClip(el.scrollWidth > el.clientWidth);
+  }, [max, min]);
+
+  React.useLayoutEffect(() => { fit(); }, [fit, children, fitKey]);
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(() => fit());
+    ro.observe(el);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+    return () => ro.disconnect();
+  }, [fit]);
+
+  return (
+    <div ref={ref} className={className} style={{
+      ...style,
+      fontSize: size,
+      whiteSpace: 'nowrap',
+      // Lighter stroke + shadow once the heading shrinks, so it stays crisp.
+      ...(size < 16 ? { WebkitTextStrokeWidth: '1.5px', textShadow: '0 3px 0 var(--base-secondary)' } : null),
+      // Clip only as a last resort; pad so the stroke + drop shadow survive.
+      ...(clip ? { overflow: 'hidden', textOverflow: 'ellipsis', paddingBottom: 7, marginBottom: -7 } : null),
+    }}>{children}</div>
+  );
+}
+
+window.FitText = FitText;
 window.ScreenshotClue = ScreenshotClue;
 window.TextClue = TextClue;
 window.GuessedPill = GuessedPill;

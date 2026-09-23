@@ -256,6 +256,7 @@ function PlayBoard({ user, loggedIn = true, subreddit, day, revealed, attempts, 
           isPeek={peek != null}
           wrongGuess={missByLevel[shownIdx + 1] || null}
           onClosePeek={() => setPeek(null)}
+          fitKey={typing}
         />
       </div>
 
@@ -387,7 +388,7 @@ function ProgressBar({ revealed, activeShownIdx, attempts, onPickClue }) {
 // middle zone in PlayBoard). The header is flex:none; the body
 // (screenshot / text) flexes to fill the rest, ensuring the image
 // always sits above the bottom border line.
-function ActiveClueCard({ n, clue, isPeek, wrongGuess, onClosePeek }) {
+function ActiveClueCard({ n, clue, isPeek, wrongGuess, onClosePeek, fitKey }) {
   if (!clue) return null;
   return (
     <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: 8, flex: '1 1 0', minHeight: 0 }}>
@@ -400,15 +401,17 @@ function ActiveClueCard({ n, clue, isPeek, wrongGuess, onClosePeek }) {
           WebkitTextStroke: '1px var(--base-secondary)', paintOrder: 'stroke fill',
           boxShadow: '0 3px 0 var(--base-secondary)',
         }}>{n}</div>
-        <div className="dt" style={{ fontSize: 22, lineHeight: 1, flex: 1, minWidth: 0 }}>{clue.label}</div>
+        {/* Always one line: shrinks 22 → 11px to fit the width available. */}
+        <FitText max={22} min={11} fitKey={`${fitKey}-${isPeek}`} style={{ lineHeight: 1.1, flex: 1, minWidth: 0 }}>{clue.label}</FitText>
         {isPeek && (
-          <button onClick={onClosePeek} style={{
+          <button onClick={onClosePeek} aria-label="Back to live clue" title="Back to live clue" style={{
+            flex: 'none', whiteSpace: 'nowrap',
             border: '2px solid var(--base-secondary)', background: '#fff',
             borderRadius: 9999, padding: '4px 10px', cursor: 'pointer',
             font: '700 11px/1 var(--font-ui)', color: 'var(--ink-dark)',
             textTransform: 'uppercase', letterSpacing: '0.06em',
             boxShadow: '0 3px 0 var(--base-secondary)',
-          }}>← Back to live</button>
+          }}>← Live</button>
         )}
       </div>
       {clue.kind === 'screenshot'
