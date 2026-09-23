@@ -240,29 +240,6 @@ function Preview() {
         </div>
 
         <div className="ctl">
-          <div className="ctl-label">What’s what
-            <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center', textTransform: 'none', letterSpacing: 0, fontWeight: 600, cursor: 'pointer' }}>
-              <input id="show-labels" type="checkbox" checked={labels} onChange={e => setLabels(e.target.checked)} /> Show labels
-            </label>
-          </div>
-          <ol className="key">
-            {PARTS.map(p => {
-              const off = p.only && p.only !== view;
-              return (
-                <li key={p.n} tabIndex={0}
-                    className={`${hot === p.n ? 'is-hot' : ''}${off ? ' is-off' : ''}`}
-                    onMouseEnter={() => setHot(p.n)} onMouseLeave={() => setHot(null)}
-                    onFocus={() => setHot(p.n)} onBlur={() => setHot(null)}>
-                  <span className="pin">{p.n}</span>
-                  <span><b>{p.title}{p.n === 1 && bar === 'auto' && autoShows ? ` · ${BAR_NAMES[autoShows]}` : ''}</b><span className="d">{p.d}</span></span>
-                </li>
-              );
-            })}
-          </ol>
-          <p className="note">Hover an item to outline it on the game. {view === 'phone' ? 'Tap the guess box to see the keyboard (4).' : ''}</p>
-        </div>
-
-        <div className="ctl">
           <div className="ctl-label">Top bar</div>
           <div className="seg">
             {TOPBARS.map(t => <button key={t.id} aria-pressed={bar === t.id} onClick={() => setBar(t.id)}>{t.label}</button>)}
@@ -288,6 +265,29 @@ function Preview() {
 
         <div className="seg"><button onClick={() => { setRun(r => r + 1); setSheet(false); }}>↺ Restart</button></div>
         <p className="note">Today’s answer is Sonic The Hedgehog 2, if you want to see a win.</p>
+
+        <div className="ctl">
+          <div className="ctl-label">What’s what
+            <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center', textTransform: 'none', letterSpacing: 0, fontWeight: 600, cursor: 'pointer' }}>
+              <input id="show-labels" type="checkbox" checked={labels} onChange={e => setLabels(e.target.checked)} /> Show labels
+            </label>
+          </div>
+          <ol className="key">
+            {PARTS.map(p => {
+              const off = p.only && p.only !== view;
+              return (
+                <li key={p.n} tabIndex={0}
+                    className={`${hot === p.n ? 'is-hot' : ''}${off ? ' is-off' : ''}`}
+                    onMouseEnter={() => setHot(p.n)} onMouseLeave={() => setHot(null)}
+                    onFocus={() => setHot(p.n)} onBlur={() => setHot(null)}>
+                  <span className="pin">{p.n}</span>
+                  <span><b>{p.title}{p.n === 1 && bar === 'auto' && autoShows ? ` · ${BAR_NAMES[autoShows]}` : ''}</b><span className="d">{p.d}</span></span>
+                </li>
+              );
+            })}
+          </ol>
+          <p className="note">Hover an item to outline it on the game. {view === 'phone' ? 'Tap the guess box to see the keyboard (4).' : ''}</p>
+        </div>
       </aside>
 
       <main className="stage">
