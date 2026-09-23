@@ -7,6 +7,11 @@ const TOPBARS = [
   { id: 'compact', label: 'Compact' },
   { id: 'minimal', label: 'Minimal' },
 ];
+const INPUTS = [
+  { id: 'auto', label: 'Auto' },
+  { id: 'custom', label: 'Phone keyboard' },
+  { id: 'native', label: 'Computer' },
+];
 const BAR_NAMES = { full: 'Full', compact: 'Compact', minimal: 'Minimal' };
 const WIDTHS = [320, 360, 375, 390, 414, 430];
 const HEIGHTS = [{ h: 420, label: 'Short' }, { h: 512, label: 'Tall' }, { h: 640, label: 'Large' }];
@@ -21,6 +26,8 @@ function Preview() {
   const [h, setH] = React.useState(saved.h || 512);
   const [bar, setBar] = React.useState(saved.bar || 'auto');
   const [autoShows, setAutoShows] = React.useState(null);
+  const [input, setInput] = React.useState(saved.input || 'auto');
+  const touch = usePrefersTouchKeyboard();
   React.useEffect(() => {
     const on = (e) => setAutoShows(e.detail);
     window.addEventListener('moby-topbar', on);
@@ -33,8 +40,8 @@ function Preview() {
     const r = document.documentElement.style;
     r.setProperty('--phone-w', w + 20 + 'px');
     r.setProperty('--embed-h', h + 'px');
-    savePrefs({ w, h, bar });
-  }, [w, h, bar]);
+    savePrefs({ w, h, bar, input });
+  }, [w, h, bar, input]);
 
   return (
     <React.Fragment>
@@ -45,7 +52,7 @@ function Preview() {
       <aside className={`controls${sheet ? ' is-open' : ''}`}>
         <div>
           <h1>Guess Moby’s Game · Play</h1>
-          <p className="lede">Tap the guess bubble to type. Tap anywhere else to put the keyboard away.</p>
+          <p className="lede">Tap the guess bubble to type. On a phone the in-game keyboard opens; tap anywhere else to put it away.</p>
         </div>
 
         <div className="ctl">
@@ -54,6 +61,14 @@ function Preview() {
             {TOPBARS.map(t => <button key={t.id} aria-pressed={bar === t.id} onClick={() => setBar(t.id)}>{t.label}</button>)}
           </div>
           {bar === 'auto' && <p className="note">Uses the fullest bar that fits, dropping to Compact then Minimal as soon as any text would be cut off.</p>}
+        </div>
+
+        <div className="ctl">
+          <div className="ctl-label">Typing{input === 'auto' && <b>{touch ? 'touch · phone keyboard' : 'mouse · text box'}</b>}</div>
+          <div className="seg">
+            {INPUTS.map(t => <button key={t.id} aria-pressed={input === t.id} onClick={() => setInput(t.id)}>{t.label}</button>)}
+          </div>
+          {input === 'auto' && <p className="note">Touch screens get the in-game keyboard; a mouse or trackpad gets a normal text box.</p>}
         </div>
 
         <div className="ctl">
@@ -85,7 +100,7 @@ function Preview() {
           <article className="post">
             <div className="post-title">Guess Moby’s Game — Day #142</div>
             <div className="embed">
-              <PlayOnly key={run} topBar={bar} />
+              <PlayOnly key={`${run}-${input}`} topBar={bar} keyboard={input} />
             </div>
           </article>
         </div>

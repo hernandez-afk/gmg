@@ -3,7 +3,7 @@
 // only the clue board and guess keyboard, plus a small end card so a
 // round can finish and start over. Reuses PlayBoard / CLUES / isCorrect
 // from App.jsx.
-function PlayOnly({ topBar = 'auto', subreddit = 'retrogaming', day = 142 }) {
+function PlayOnly({ topBar = 'auto', keyboard = 'auto', subreddit = 'retrogaming', day = 142 }) {
   const [revealed, setRevealed] = React.useState(1);
   const [attempts, setAttempts] = React.useState([]);
   const [shake, setShake] = React.useState(false);
@@ -42,7 +42,7 @@ function PlayOnly({ topBar = 'auto', subreddit = 'retrogaming', day = 142 }) {
         shake={shake}
         onGuess={handleGuess}
         onReveal={() => {}}
-        keyboard="custom"
+        keyboard={keyboard}
         topBar={topBar}
       />
       {result && (

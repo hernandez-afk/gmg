@@ -24,6 +24,7 @@ function App({
   loggedIn = true,
   // 'native' = inline text input (desktop / wide embed).
   // 'custom' = phone build: in-game pop-up keyboard (GuessKeyboard.jsx).
+  // 'auto'   = custom on touch devices, native with a mouse/trackpad.
   keyboard = 'native', initialKeyboardOpen = false, initialDraft = '',
   topBar = 'full',   // 'full' | 'compact' | 'minimal' (phone variants in TopBar.jsx)
 }) {
@@ -167,7 +168,8 @@ function padAttempts(arr, n) {
 //   • Bottom: guess input bar (also pinned).
 function PlayBoard({ user, loggedIn = true, subreddit, day, revealed, attempts, lastWrong, shake, onGuess, onReveal,
                      keyboard = 'native', initialKeyboardOpen = false, initialDraft = '', topBar = 'full' }) {
-  const customKb = keyboard === 'custom';
+  const touch = usePrefersTouchKeyboard();
+  const customKb = keyboard === 'custom' || (keyboard === 'auto' && touch);
   const [typing, setTyping] = React.useState(customKb && initialKeyboardOpen);
   const [peek, setPeek] = React.useState(null); // index of clue to preview, or null
   const shownIdx = peek != null ? peek : revealed - 1;
@@ -293,6 +295,25 @@ function PlayBoard({ user, loggedIn = true, subreddit, day, revealed, attempts, 
     </div>
   );
 }
+
+// ---- Input detection ------------------------------------------------
+// Touch-first devices (phones, tablets) report a coarse primary pointer;
+// computers report a fine one (mouse / trackpad). A touchscreen laptop
+// used with its trackpad counts as a computer. Follows changes live.
+const TOUCH_QUERY = '(pointer: coarse)';
+function usePrefersTouchKeyboard() {
+  const read = () => !!(window.matchMedia && window.matchMedia(TOUCH_QUERY).matches);
+  const [touch, setTouch] = React.useState(read);
+  React.useEffect(() => {
+    if (!window.matchMedia) return;
+    const mq = window.matchMedia(TOUCH_QUERY);
+    const on = () => setTouch(mq.matches);
+    mq.addEventListener ? mq.addEventListener('change', on) : mq.addListener(on);
+    return () => (mq.removeEventListener ? mq.removeEventListener('change', on) : mq.removeListener(on));
+  }, []);
+  return touch;
+}
+window.usePrefersTouchKeyboard = usePrefersTouchKeyboard;
 
 // ---- ProgressBar: pinned strip of clue chips + wrong-guess chips ---
 function ProgressBar({ revealed, activeShownIdx, attempts, onPickClue }) {
@@ -428,76 +449,96 @@ function ActiveClueCard({ n, clue, isPeek, wrongGuess, onClosePeek, fitKey }) {
 function GuessInputInline({ disabled, onGuess, onReveal, cluesUsed, cluesTotal, priorMisses = [] }) {
   const [value, setValue] = React.useState('');
   const [focus, setFocus] = React.useState(false);
-  const [dupMsg, setDupMsg] = React.useState(null);
-  const suggestions = React.useMemo(() => {
-    if (!value.trim()) return [];
-    const v = value.trim().toLowerCase();
-    return GAME_LIST.filter(g => g.toLowerCase().includes(v)).slice(0, 4);
-  }, [value]);
+  const [nudge, setNudge] = React.useState(false);
+  const norm = (t) => t.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const trimmed = value.trim();
+  // Already-guessed guard, checked live as the player types — tells them
+  // which clue they used it on instead of silently burning another guess.
+  const dup = trimmed ? priorMisses.find(m => norm(m.guess) === norm(trimmed)) : null;
 
+  // Same suggestion rules as the phone keyboard: catalogue matches, with
+  // earlier wrong guesses flagged rather than offered as new.
+  const suggestions = React.useMemo(() => {
+    if (!trimmed) return [];
+    const v = trimmed.toLowerCase();
+    const missed = new Map(priorMisses.map(m => [norm(m.guess), m]));
+    const seen = new Set();
+    const out = [];
+    for (const name of [...priorMisses.map(m => m.guess), ...GAME_LIST]) {
+      const k = norm(name);
+      if (seen.has(k) || !name.toLowerCase().includes(v)) continue;
+      seen.add(k);
+      out.push({ name, miss: missed.get(k) || null });
+    }
+    return out.slice(0, 4);
+  }, [trimmed, priorMisses]);
+
+  const bump = () => { setNudge(true); setTimeout(() => setNudge(false), 380); };
   const submit = (text) => {
     const t = (text ?? value).trim();
     if (!t) return;
-    // Already-guessed guard — tell the player which clue-level they used it
-    // on instead of silently burning another guess (feedback directive).
-    const norm = t.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const dup = priorMisses.find(m => m.guess.toLowerCase().replace(/[^a-z0-9]/g, '') === norm);
-    if (dup) {
-      setDupMsg(`Already guessed in level ${dup.level ?? '?'}`);
-      return;
-    }
+    if (priorMisses.some(m => norm(m.guess) === norm(t))) { setValue(t); bump(); return; }
     onGuess && onGuess(t);
     setValue('');
-    setDupMsg(null);
   };
 
+  // Popover above the input: the duplicate warning if there is one,
+  // otherwise suggestions. Nothing renders below the input, so the dock
+  // never grows past the bottom of the post.
+  const showPop = focus && (dup || suggestions.length > 0);
+
   return (
-    <div style={{ marginTop: 12, position: 'relative' }}>
-      {focus && suggestions.length > 0 && (
+    <div style={{ position: 'relative' }}>
+      {showPop && (
         <div className="card" style={{
           position: 'absolute', left: 0, right: 0, bottom: '100%', marginBottom: 8,
           padding: 6, maxHeight: 180, overflow: 'auto', zIndex: 5,
         }}>
-          {suggestions.map(s => (
-            <div key={s}
-                 onMouseDown={(e) => { e.preventDefault(); submit(s); }}
+          {dup && (
+            <div role="alert" style={{
+              padding: '9px 11px', font: '700 13px/1.3 var(--font-ui)', color: '#b73a3a',
+              display: 'flex', alignItems: 'center', gap: 6,
+            }}>
+              <span aria-hidden="true">↺</span> Already guessed at clue {dup.level ?? '?'}
+            </div>
+          )}
+          {!dup && suggestions.map(s => (
+            <div key={s.name}
+                 onMouseDown={(e) => { e.preventDefault(); submit(s.name); }}
                  style={{
                    padding: '9px 11px', borderRadius: 7, cursor: 'pointer',
-                   font: '600 14px/1 var(--font-ui)', color: 'var(--ink-dark)',
+                   display: 'flex', alignItems: 'center', gap: 8,
+                   font: '600 14px/1.3 var(--font-ui)',
+                   color: s.miss ? '#b73a3a' : 'var(--ink-dark)',
                  }}
                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(0,91,111,0.06)'}
                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}>
-              {s}
+              <span style={{ flex: 1, minWidth: 0, textDecoration: s.miss ? 'line-through' : 'none' }}>{s.name}</span>
+              {s.miss && <span className="kb-chip-tag">guessed</span>}
             </div>
           ))}
         </div>
       )}
       <div style={{ display: 'flex', gap: 8, alignItems: 'stretch' }}>
         <input
-          className="guess"
+          className={`guess${nudge ? ' is-nudge' : ''}`}
           placeholder="Type your guess…"
           value={value}
           disabled={disabled}
-          onChange={(e) => { setValue(e.target.value); if (dupMsg) setDupMsg(null); }}
+          aria-invalid={!!dup}
+          onChange={(e) => setValue(e.target.value)}
           onFocus={() => setFocus(true)}
           onBlur={() => setTimeout(() => setFocus(false), 120)}
           onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
-          style={{ flex: 1, padding: '12px 14px', fontSize: 16 }}
+          style={{
+            flex: 1, padding: '12px 14px', fontSize: 16,
+            ...(dup ? { borderColor: '#b73a3a', color: '#b73a3a', outlineColor: '#b73a3a' } : null),
+          }}
         />
-        <button className="btn btn-primary" disabled={disabled} onClick={() => submit()} style={{ minWidth: 70, fontSize: 15, padding: '12px 16px' }}>
+        <button className="btn btn-primary" disabled={disabled || !trimmed || !!dup} onClick={() => submit()} style={{ minWidth: 70, fontSize: 15, padding: '12px 16px' }}>
           Guess
         </button>
       </div>
-      {dupMsg && (
-        <div role="alert" style={{
-          marginTop: 8, padding: '6px 11px', borderRadius: 9999,
-          background: 'rgba(224,80,58,0.12)', border: '2px solid #e0503a',
-          font: '700 12px/1 var(--font-ui)', color: '#b73a3a',
-          display: 'inline-flex', alignItems: 'center', gap: 6,
-        }}>
-          <span aria-hidden="true">↺</span> {dupMsg}
-        </div>
-      )}
     </div>
   );
 }

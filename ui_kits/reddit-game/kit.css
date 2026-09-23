@@ -229,7 +229,7 @@ input.guess::placeholder { color: rgba(0,91,111,0.45); font-weight: 600; }
 .kb-field.is-open { outline: 3px solid var(--accent); outline-offset: 2px; }
 .kb-field.is-dup { border-color: var(--kb-miss); color: var(--kb-miss); outline-color: var(--kb-miss); }
 .kb-field.is-disabled { opacity: 0.6; cursor: not-allowed; }
-.kb-field.is-nudge { animation: kb-nudge 0.36s ease; }
+.kb-field.is-nudge, input.guess.is-nudge { animation: kb-nudge 0.36s ease; }
 
 /* Long guesses keep their tail (and the caret) in view. */
 .kb-text { flex: 0 1 auto; min-width: 0; display: flex; justify-content: flex-end; overflow: hidden; }
