@@ -2,10 +2,12 @@
 // Shows PlayOnly as an inline post in a phone feed, with just the
 // controls needed to judge fit: top bar, post height, phone width.
 const TOPBARS = [
+  { id: 'auto', label: 'Auto' },
+  { id: 'full', label: 'Full' },
   { id: 'compact', label: 'Compact' },
   { id: 'minimal', label: 'Minimal' },
-  { id: 'full', label: 'Full' },
 ];
+const BAR_NAMES = { full: 'Full', compact: 'Compact', minimal: 'Minimal' };
 const WIDTHS = [320, 360, 375, 390, 414, 430];
 const HEIGHTS = [{ h: 420, label: 'Short' }, { h: 512, label: 'Tall' }, { h: 640, label: 'Large' }];
 
@@ -17,7 +19,13 @@ function Preview() {
   const saved = React.useMemo(loadPrefs, []);
   const [w, setW] = React.useState(saved.w || 390);
   const [h, setH] = React.useState(saved.h || 512);
-  const [bar, setBar] = React.useState(saved.bar || 'compact');
+  const [bar, setBar] = React.useState(saved.bar || 'auto');
+  const [autoShows, setAutoShows] = React.useState(null);
+  React.useEffect(() => {
+    const on = (e) => setAutoShows(e.detail);
+    window.addEventListener('moby-topbar', on);
+    return () => window.removeEventListener('moby-topbar', on);
+  }, []);
   const [run, setRun] = React.useState(0);
   const [sheet, setSheet] = React.useState(false);
 
@@ -41,10 +49,11 @@ function Preview() {
         </div>
 
         <div className="ctl">
-          <div className="ctl-label">Top bar</div>
+          <div className="ctl-label">Top bar{bar === 'auto' && autoShows && <b>showing {BAR_NAMES[autoShows]}</b>}</div>
           <div className="seg">
             {TOPBARS.map(t => <button key={t.id} aria-pressed={bar === t.id} onClick={() => setBar(t.id)}>{t.label}</button>)}
           </div>
+          {bar === 'auto' && <p className="note">Uses the fullest bar that fits, dropping to Compact then Minimal as soon as any text would be cut off.</p>}
         </div>
 
         <div className="ctl">

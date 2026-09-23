@@ -4,7 +4,12 @@
 //     relocate level progress to the top-right to reclaim vertical
 //     space). Each pip is tappable to peek that clue; a pip where the
 //     player already guessed wrong is ringed red ("failed level").
-function TopBar({ subreddit, day, points = 12480, user, loggedIn = true, clues, revealed, shownIdx, attempts = [], onPickClue, variant = 'full' }) {
+function TopBar(props) {
+  if (props.variant === 'auto') return <TopBarAuto {...props} />;
+  return <TopBarFixed {...props} />;
+}
+
+function TopBarFixed({ subreddit, day, points = 12480, user, loggedIn = true, clues, revealed, shownIdx, attempts = [], onPickClue, variant = 'full' }) {
   const missLevels = new Set(
     attempts.filter(a => a.kind === 'miss' && a.level != null).map(a => a.level)
   );
@@ -17,7 +22,7 @@ function TopBar({ subreddit, day, points = 12480, user, loggedIn = true, clues, 
       <Logo size="sm" />
       {/* Meta column truncates instead of wrapping on narrow phone embeds. */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0, flex: '0 1 auto', overflow: 'hidden' }}>
-        <span style={{
+        <span data-fit style={{
           font: '700 11px/1 var(--font-ui)',
           color: 'var(--text)',
           textShadow: '0 1px 0 var(--base-secondary)',
@@ -29,7 +34,7 @@ function TopBar({ subreddit, day, points = 12480, user, loggedIn = true, clues, 
           #{day} · r/{subreddit}
         </span>
         {loggedIn && (
-          <span style={{ display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', minWidth: 0, overflow: 'hidden', lineHeight: 1.3 }}>
+          <span data-fit style={{ display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', minWidth: 0, overflow: 'hidden', lineHeight: 1.3 }}>
             <span style={{ flex: 'none', display: 'inline-flex' }}><Snoo size={14} /></span>
             <span style={{ font: '800 10px/1.3 var(--font-ui)', color: 'var(--text)', textShadow: '0 1px 0 var(--base-secondary)' }}>u/{user}</span>
             <span style={{ font: '700 10px/1 var(--font-ui)', color: 'var(--accent)' }}>· {points.toLocaleString()} pts</span>
@@ -108,7 +113,7 @@ function TopBarCompact({ subreddit, day, clues, revealed, shownIdx, missLevels, 
     <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 12px' }}>
       <img src="logo-moby.png" alt="Guess Moby's Game" draggable={false}
            style={{ display: 'block', width: 54, height: 'auto', flex: 'none', userSelect: 'none' }} />
-      <span style={{
+      <span data-fit style={{
         flex: '1 1 auto', minWidth: 0,
         font: '700 11px/1 var(--font-ui)', color: 'var(--text)',
         textShadow: '0 1px 0 var(--base-secondary)',
@@ -192,6 +197,60 @@ function CluePip({ i, clue, size, locked, shown, missed, onPickClue }) {
       }}>
       {locked ? '?' : n}
     </button>
+  );
+}
+
+// ---- Auto: pick the richest bar that fits -------------------------
+// Renders Full first; if any [data-fit] text is being cut off, steps down
+// to Compact, then Minimal. Measured in a layout effect, so the stepping
+// happens before paint (no flicker). Any width change — rotating, a new
+// post size, the bar reappearing after the keyboard closes — or late font
+// load starts again from Full, so it also steps back *up* when there's room.
+const TOPBAR_ORDER = ['full', 'compact', 'minimal'];
+
+function TopBarAuto(props) {
+  const ref = React.useRef(null);
+  const [level, setLevel] = React.useState(0);
+  const [, setTick] = React.useState(0); // forces a re-measure even if level is already 0
+  const lastW = React.useRef(-1);
+
+  React.useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || el.clientWidth === 0 || level >= TOPBAR_ORDER.length - 1) return;
+    const cut = [...el.querySelectorAll('[data-fit]')].some(n => n.scrollWidth > n.clientWidth + 1);
+    if (cut) setLevel(level + 1);
+  });
+
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const reset = () => {
+      const go = () => { setLevel(0); setTick(t => t + 1); };
+      if (ReactDOM.flushSync) ReactDOM.flushSync(go); else go();
+    };
+    let ro;
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(([entry]) => {
+        const w = Math.round(entry.contentRect.width);
+        if (w !== lastW.current) { lastW.current = w; reset(); }
+      });
+      ro.observe(el);
+    }
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(reset);
+    return () => ro && ro.disconnect();
+  }, []);
+
+  const variant = TOPBAR_ORDER[level];
+  React.useEffect(() => {
+    // Deferred so listeners mounted in the same commit (e.g. the preview) hear it.
+    const t = setTimeout(() => window.dispatchEvent(new CustomEvent('moby-topbar', { detail: variant })), 0);
+    return () => clearTimeout(t);
+  }, [variant]);
+
+  return (
+    <div ref={ref} data-topbar={variant}>
+      <TopBarFixed {...props} variant={variant} />
+    </div>
   );
 }
 
