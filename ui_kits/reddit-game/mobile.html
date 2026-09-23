@@ -163,13 +163,11 @@
     ];
     const WIDTHS = [320, 360, 375, 390, 414, 430];
     const HEIGHTS = [{ h: 420, label: 'Compact' }, { h: 512, label: 'Tall' }, { h: 640, label: 'Large' }];
-    const MODES = ['mode-1', 'mode-2', 'mode-3', 'mode-5'];
-    const MODE_SWATCH = {
-      'mode-1': ['rgb(0,116,200)', 'rgb(255,174,23)'],
-      'mode-2': ['rgb(104,198,96)', 'rgb(68,144,199)'],
-      'mode-3': ['rgb(239,171,1)', 'rgb(31,161,20)'],
-      'mode-5': ['rgb(177,224,87)', 'rgb(0,138,213)'],
-    };
+    const TOPBARS = [
+      { id: 'full', label: 'Current' },
+      { id: 'compact', label: 'Compact' },
+      { id: 'minimal', label: 'Minimal' },
+    ];
 
     const STORE_KEY = 'moby-phone-preview';
     const loadPrefs = () => { try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; } };
@@ -179,7 +177,7 @@
       const saved = React.useMemo(loadPrefs, []);
       const [w, setW] = React.useState(saved.w || 390);
       const [h, setH] = React.useState(saved.h || 512);
-      const [mode, setMode] = React.useState(saved.mode || 'mode-1');
+      const [bar, setBar] = React.useState(saved.bar || 'compact');
       const [scenario, setScenario] = React.useState(saved.scenario || 'fresh');
       const [run, setRun] = React.useState(0);
       const [sheet, setSheet] = React.useState(false);
@@ -187,8 +185,8 @@
       React.useEffect(() => {
         document.documentElement.style.setProperty('--phone-w', w + 20 + 'px'); // + bezel
         document.documentElement.style.setProperty('--embed-h', h + 'px');
-        savePrefs({ w, h, mode, scenario });
-      }, [w, h, mode, scenario]);
+        savePrefs({ w, h, bar, scenario });
+      }, [w, h, bar, scenario]);
 
       const sc = SCENARIOS.find(s => s.id === scenario) || SCENARIOS[0];
 
@@ -220,13 +218,9 @@
             </div>
 
             <div className="ctl">
-              <div className="ctl-label">Subreddit theme</div>
+              <div className="ctl-label">Top bar</div>
               <div className="seg">
-                {MODES.map(m => (
-                  <button key={m} className="swatch" aria-label={m} aria-pressed={mode === m} onClick={() => setMode(m)}>
-                    <span style={{ background: `linear-gradient(135deg, ${MODE_SWATCH[m][0]} 50%, ${MODE_SWATCH[m][1]} 50%)` }} />
-                  </button>
-                ))}
+                {TOPBARS.map(t => <button key={t.id} aria-pressed={bar === t.id} onClick={() => setBar(t.id)}>{t.label}</button>)}
               </div>
             </div>
 
@@ -255,8 +249,8 @@
                 <div className="post-head"><span className="avatar" /><b>r/retrogaming</b> · 3h · u/moby_bot</div>
                 <div className="post-title">Guess Moby’s Game — Day #142</div>
                 <div className="embed">
-                  <App key={`${scenario}-${mode}-${run}`}
-                       mode={mode} subreddit="retrogaming" day={142}
+                  <App key={`${scenario}-${run}`}
+                       mode="mode-1" topBar={bar} subreddit="retrogaming" day={142}
                        keyboard="custom" initialPhase="play"
                        {...sc.props} />
                 </div>

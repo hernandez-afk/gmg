@@ -25,6 +25,7 @@ function App({
   // 'native' = inline text input (desktop / wide embed).
   // 'custom' = phone build: in-game pop-up keyboard (GuessKeyboard.jsx).
   keyboard = 'native', initialKeyboardOpen = false, initialDraft = '',
+  topBar = 'full',   // 'full' | 'compact' | 'minimal' (phone variants in TopBar.jsx)
 }) {
   const [phase, setPhase] = React.useState(initialPhase);
   const [revealed, setRevealed] = React.useState(initialRevealed);
@@ -99,6 +100,7 @@ function App({
           keyboard={keyboard}
           initialKeyboardOpen={initialKeyboardOpen}
           initialDraft={initialDraft}
+          topBar={topBar}
         />
       )}
       {phase === 'intro' && <IntroSheet onDismiss={beginPlay} />}
@@ -164,7 +166,7 @@ function padAttempts(arr, n) {
 //             location/content as the game advances.
 //   • Bottom: guess input bar (also pinned).
 function PlayBoard({ user, loggedIn = true, subreddit, day, revealed, attempts, lastWrong, shake, onGuess, onReveal,
-                     keyboard = 'native', initialKeyboardOpen = false, initialDraft = '' }) {
+                     keyboard = 'native', initialKeyboardOpen = false, initialDraft = '', topBar = 'full' }) {
   const customKb = keyboard === 'custom';
   const [typing, setTyping] = React.useState(customKb && initialKeyboardOpen);
   const [peek, setPeek] = React.useState(null); // index of clue to preview, or null
@@ -237,6 +239,7 @@ function PlayBoard({ user, loggedIn = true, subreddit, day, revealed, attempts, 
           shownIdx={shownIdx}
           attempts={attempts}
           onPickClue={(i) => setPeek(i === revealed - 1 ? null : i)}
+          variant={topBar}
         />
       </div>
 
