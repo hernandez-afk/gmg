@@ -258,8 +258,11 @@ input.guess::placeholder { color: rgba(0,91,111,0.45); font-weight: 600; }
 /* Suggestion strip — sits where a phone's predictive bar would. */
 .kb-suggest {
   display: flex; align-items: center; gap: 6px;
-  min-height: calc(var(--kb-h) - 2px);
-  padding: 7px 10px 5px;
+  /* Fixed height: hint text, chips and the "already guessed" pill all fit,
+     so the keys never jump when suggestions come and go. */
+  height: 42px;
+  box-sizing: border-box;
+  padding: 0 10px 2px;
   overflow-x: auto; overflow-y: hidden;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
