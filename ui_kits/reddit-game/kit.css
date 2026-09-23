@@ -356,3 +356,13 @@ input.guess::placeholder { color: rgba(0,91,111,0.45); font-weight: 600; }
   .kb-host.is-typing .kb-cluehead > div:first-child { width: 24px !important; height: 24px !important; font-size: 12px !important; }
   .kb-host.is-typing .kb-cluehead .dt { --fit-max: 17; }  /* FitText reads this as its ceiling */
 }
+
+/* ---- Play-only end card (PlayOnly.jsx) ---------------------------- */
+.play-end {
+  position: absolute; inset: 0; z-index: 20;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding: 12px;
+  background: color-mix(in srgb, var(--base-secondary) 55%, transparent);
+}
+.play-end-card { width: 100%; max-width: 360px; padding: 18px 18px 20px; border-radius: 18px; box-shadow: var(--shadow-lg); }
+.play-end-copy { margin: 8px 0 16px; font: 500 15px/1.4 var(--font-ui); color: var(--ink-dark); }
