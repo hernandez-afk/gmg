@@ -24,14 +24,14 @@ function TopBar({ subreddit, day, points = 12480, user, loggedIn = true, clues, 
           opacity: 0.95,
           textTransform: 'uppercase',
           letterSpacing: '0.06em',
-          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.3,
         }}>
           #{day} · r/{subreddit}
         </span>
         {loggedIn && (
-          <span style={{ display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', minWidth: 0, overflow: 'hidden' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 5, whiteSpace: 'nowrap', minWidth: 0, overflow: 'hidden', lineHeight: 1.3 }}>
             <span style={{ flex: 'none', display: 'inline-flex' }}><Snoo size={14} /></span>
-            <span style={{ font: '800 10px/1 var(--font-ui)', color: 'var(--text)', textShadow: '0 1px 0 var(--base-secondary)' }}>u/{user}</span>
+            <span style={{ font: '800 10px/1.3 var(--font-ui)', color: 'var(--text)', textShadow: '0 1px 0 var(--base-secondary)' }}>u/{user}</span>
             <span style={{ font: '700 10px/1 var(--font-ui)', color: 'var(--accent)' }}>· {points.toLocaleString()} pts</span>
           </span>
         )}
@@ -113,7 +113,7 @@ function TopBarCompact({ subreddit, day, clues, revealed, shownIdx, missLevels, 
         font: '700 11px/1 var(--font-ui)', color: 'var(--text)',
         textShadow: '0 1px 0 var(--base-secondary)',
         textTransform: 'uppercase', letterSpacing: '0.06em',
-        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: 1.3,
       }}>
         #{day} · r/{subreddit}
       </span>
