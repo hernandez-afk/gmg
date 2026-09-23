@@ -135,8 +135,8 @@ function TopBarCompact({ subreddit, day, clues, revealed, shownIdx, missLevels, 
 function TopBarMinimal({ day, clues, revealed, shownIdx, missLevels, onPickClue }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px' }}>
-      <img src="vectorized-moby-mrnlgnhm-w8j9.png" alt="Guess Moby's Game" draggable={false}
-           style={{ display: 'block', width: 26, height: 'auto', flex: 'none', userSelect: 'none' }} />
+      <img src="moby-mark.png" alt="Guess Moby's Game" draggable={false}
+           style={{ display: 'block', height: 30, width: 'auto', flex: 'none', userSelect: 'none' }} />
       <span style={{
         flex: 'none', font: '800 10px/1 var(--font-ui)', color: 'var(--text)',
         textShadow: '0 1px 0 var(--base-secondary)', letterSpacing: '0.04em',
