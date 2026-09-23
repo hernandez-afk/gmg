@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Reddit Game · Guess the Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhai+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="kit.css">
+  <style>
+    html, body { height: 100%; }
+    body { background: #f5efe2; margin: 0; font-family: var(--font-ui); }
+
+    /* Shake animation for wrong guess */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+    .shake { animation: shake 0.36s ease; }
+
+    /* When inside a DCArtboard, fill it completely. */
+    .dc-artboard > .frame { width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script src="image-slot.js"></script>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+
+  <script type="text/babel" src="components/Logo.jsx"></script>
+  <script type="text/babel" src="components/MobyAnimation.jsx"></script>
+  <script type="text/babel" src="components/Snoo.jsx"></script>
+  <script type="text/babel" src="components/Whale.jsx"></script>
+  <script type="text/babel" src="components/LevelBadge.jsx"></script>
+  <script type="text/babel" src="components/LevelRow.jsx"></script>
+  <script type="text/babel" src="components/ClueContent.jsx"></script>
+  <script type="text/babel" src="components/LiveCounter.jsx"></script>
+  <script type="text/babel" src="components/DifficultyMeter.jsx"></script>
+  <script type="text/babel" src="components/TopBar.jsx"></script>
+  <script type="text/babel" src="components/ThemedWeekRibbon.jsx"></script>
+  <script type="text/babel" src="components/GuessInput.jsx"></script>
+  <script type="text/babel" src="components/GuessKeyboard.jsx"></script>
+  <script type="text/babel" src="components/CommentRail.jsx"></script>
+  <script type="text/babel" src="components/Splash.jsx"></script>
+  <script type="text/babel" src="components/IntroSheet.jsx"></script>
+  <script type="text/babel" src="components/SolveCard.jsx"></script>
+  <script type="text/babel" src="components/WrongGuessesPanel.jsx"></script>
+  <script type="text/babel" src="components/ShareBar.jsx"></script>
+  <script type="text/babel" src="components/Badges.jsx"></script>
+  <script type="text/babel" src="components/BadgeUnlock.jsx"></script>
+  <script type="text/babel" src="components/Leaderboard.jsx"></script>
+  <script type="text/babel" src="components/FailScreen.jsx"></script>
+  <script type="text/babel" src="components/App.jsx"></script>
+
+  <script type="text/babel">
+    // Pre-baked attempt sequences for the static gallery frames.
+    const ATTEMPTS_ONE_WRONG  = [{ kind: 'miss', guess: 'Castlevania', level: 1 }];
+    const ATTEMPTS_THREE_WRONG = [
+      { kind: 'miss', guess: 'Castlevania', level: 1 },
+      { kind: 'miss', guess: 'Strider', level: 2 },
+      { kind: 'miss', guess: 'Shinobi III', level: 3 },
+    ];
+    const ATTEMPTS_PIXEL_PERFECT = [{ kind: 'solve', guess: 'sonic the hedgehog 2' }];
+    const ATTEMPTS_OUT_OF_GUESSES = [
+      { kind: 'miss', guess: 'Castlevania', level: 1 },
+      { kind: 'miss', guess: 'Strider', level: 2 },
+      { kind: 'miss', guess: 'Shinobi III', level: 3 },
+      { kind: 'miss', guess: 'Streets of Rage 2', level: 4 },
+      { kind: 'miss', guess: 'Ghouls \u2019n Ghosts', level: 5 },
+      { kind: 'miss', guess: 'Vectorman', level: 5 },
+    ];
+    const ATTEMPTS_FIVE_WRONG = [
+      { kind: 'miss', guess: 'Castlevania', level: 1 },
+      { kind: 'miss', guess: 'Strider', level: 2 },
+      { kind: 'miss', guess: 'Shinobi III', level: 3 },
+      { kind: 'miss', guess: 'Streets of Rage 2', level: 4 },
+      { kind: 'miss', guess: 'Ghouls \u2019n Ghosts', level: 5 },
+    ];
+    const ATTEMPTS_SOLVED_IN_3 = [
+      { kind: 'miss', guess: 'Castlevania', level: 1 },
+      { kind: 'miss', guess: 'Strider', level: 2 },
+      { kind: 'solve', guess: 'sonic the hedgehog 2' },
+    ];
+
+    function Page() {
+      const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+        "atariLogoSize": 75,
+        "mobyLogoSize": 250,
+        "whaleSize": 64
+      }/*EDITMODE-END*/;
+      const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+      React.useEffect(() => {
+        document.documentElement.style.setProperty('--atari-logo-w', t.atariLogoSize + 'px');
+        document.documentElement.style.setProperty('--moby-logo-w', t.mobyLogoSize + 'px');
+        document.documentElement.style.setProperty('--whale-w', t.whaleSize + '%');
+      }, [t.atariLogoSize, t.mobyLogoSize, t.whaleSize]);
+      return (
+        <React.Fragment>
+        <TweaksPanel>
+          <TweakSection label="Splash" />
+          <TweakSlider label="Atari logo size" value={t.atariLogoSize} min={36} max={132} step={1} unit="px"
+                       onChange={(v) => setTweak('atariLogoSize', v)} />
+          <TweakSlider label="Moby logo size" value={t.mobyLogoSize} min={140} max={360} step={2} unit="px"
+                       onChange={(v) => setTweak('mobyLogoSize', v)} />
+          <TweakSlider label="Whale size" value={t.whaleSize} min={20} max={70} step={1} unit="%"
+                       onChange={(v) => setTweak('whaleSize', v)} />
+        </TweaksPanel>
+        <DesignCanvas>
+
+          {/* ============================================================
+              SECTION 1 — Fully interactive (click-thru)
+              Reddit interactive-post (Devvit) embed size: 540×600.
+              ============================================================ */}
+          <DCSection id="interactive" title="Fully interactive"
+                     subtitle="Click play to step through the whole loop yourself. Each artboard is independent.">
+            <DCArtboard id="int-feed" label="In-feed · wide · r/retrogaming" width={540} height={600}>
+              <App mode="mode-1" subreddit="retrogaming" day={142} />
+            </DCArtboard>
+            <DCArtboard id="int-phone" label="Phone portrait · 390 × 844" width={390} height={844}>
+              <App mode="mode-1" subreddit="retrogaming" day={142} />
+            </DCArtboard>
+          </DCSection>
+
+          {/* ============================================================
+              SECTION 2 — Screen gallery (4:5 in-feed)
+              Frozen states so you can see every screen without playing.
+              ============================================================ */}
+          <DCSection id="gallery-feed" title="Screen gallery · wide"
+                     subtitle="Each artboard is the game frozen on one state. Read left-to-right as the player’s journey.">
+
+            <DCArtboard id="g-splash" label="① Splash" width={540} height={600}>
+              <App mode="mode-1" subreddit="retrogaming" day={142} initialPhase="splash" />
+            </DCArtboard>
+
+            <DCArtboard id="g-intro" label="② First-run intro" width={540} height={600}>
+              <App mode="mode-1" subreddit="retrogaming" day={142} initialPhase="intro" />
+            </DCArtboard>
+
+            <DCArtboard id="g-play-fresh" label="③ Play · clue 1" width={540} height={600}>
+              <App mode="mode-1" subreddit="retrogaming" day={142} initialPhase="play" initialRevealed={1} />
+            </DCArtboard>
+
+            <DCArtboard id="g-play-wrong" label="④ Play · just guessed wrong" width={540} height={600}>
+              <App mode="mode-1" subreddit="retrogaming" day={142}
+                   initialPhase="play"
+                   initialRevealed={2}
+                   initialAttempts={ATTEMPTS_ONE_WRONG}
+                   initialLastWrong="Castlevania" />
+            </DCArtboard>
+
+            <DCArtboard id="g-play-deep" label="⑤ Play · running out of clues" width={540} height={600}>
+              <App mode="mode-1" subreddit="retrogaming" day={142}
+                   initialPhase="play"
+                   initialRevealed={4}
+                   initialAttempts={ATTEMPTS_THREE_WRONG}
+                   initialLastWrong="Shinobi III" />
+            </DCArtboard>
+
+            <DCArtboard id="g-play-last" label="⑤b Play · last guess warning" width={540} height={600}>
+              <App mode="mode-1" subreddit="retrogaming" day={142}
+                   initialPhase="play"
+                   initialRevealed={5}
+                   initialAttempts={ATTEMPTS_FIVE_WRONG}
+                   initialLastWrong="Ghouls \u2019n Ghosts" />
+            </DCArtboard>
+
+            <DCArtboard id="g-unlock-pp" label="⑥ Badge unlock · Pixel Perfect" width={540} height={600}>
+              <App mode="mode-1" subreddit="retrogaming" day={142}
+                   initialPhase="unlock"
+                   initialRevealed={1}
+                   initialAttempts={ATTEMPTS_PIXEL_PERFECT} />
+            </DCArtboard>
+
+            <DCArtboard id="g-solve" label="⑦ Solve · share card" width={540} height={600}>
+              <App mode="mode-1" subreddit="retrogaming" day={142}
+                   initialPhase="solve"
+                   initialRevealed={3}
+                   initialAttempts={ATTEMPTS_SOLVED_IN_3} />
+            </DCArtboard>
+
+            <DCArtboard id="g-leaderboard" label="⑧ Leaderboard" width={540} height={600}>
+              <App mode="mode-1" subreddit="retrogaming" day={142}
+                   initialPhase="leaderboard"
+                   initialRevealed={3}
+                   initialAttempts={ATTEMPTS_SOLVED_IN_3} />
+            </DCArtboard>
+
+            <DCArtboard id="g-fail" label="⑨ Out of guesses · You Tried!" width={540} height={600}>
+              <App mode="mode-1" subreddit="retrogaming" day={142}
+                   initialPhase="fail"
+                   initialRevealed={5}
+                   initialAttempts={ATTEMPTS_OUT_OF_GUESSES} />
+            </DCArtboard>
+          </DCSection>
+
+          {/* ============================================================
+              SECTION 4 — Phone gallery
+              ============================================================ */}
+          <DCSection id="gallery-phone" title="Screen gallery · phone"
+                     subtitle="Same states, native mobile portrait (iPhone 14 · 390 × 844).">
+            <DCArtboard id="p-splash" label="Splash" width={390} height={844}>
+              <App mode="mode-1" subreddit="retrogaming" day={142} initialPhase="splash" />
+            </DCArtboard>
+            <DCArtboard id="p-play"   label="Play · clue 1" width={390} height={844}>
+              <App mode="mode-1" subreddit="retrogaming" day={142} initialPhase="play" initialRevealed={1} />
+            </DCArtboard>
+            <DCArtboard id="p-solve"  label="Solve" width={390} height={844}>
+              <App mode="mode-1" subreddit="retrogaming" day={142} initialPhase="solve" initialAttempts={ATTEMPTS_SOLVED_IN_3} initialRevealed={3} />
+            </DCArtboard>
+            <DCArtboard id="p-board"  label="Leaderboard" width={390} height={844}>
+              <App mode="mode-1" subreddit="retrogaming" day={142} initialPhase="leaderboard" initialAttempts={ATTEMPTS_SOLVED_IN_3} initialRevealed={3} />
+            </DCArtboard>
+            <DCArtboard id="p-fail"   label="You Tried!" width={390} height={844}>
+              <App mode="mode-1" subreddit="retrogaming" day={142} initialPhase="fail" initialAttempts={ATTEMPTS_OUT_OF_GUESSES} initialRevealed={5} />
+            </DCArtboard>
+          </DCSection>
+
+          {/* ============================================================
+              SECTION — Phone · Reddit-app inline post with the in-game
+              keyboard. Full interactive preview with adjustable post
+              size lives in mobile.html.
+              ============================================================ */}
+          <DCSection id="phone-keyboard" title="Phone · in-game keyboard"
+                     subtitle="Inline post in the Reddit app (~370 × 512). Tap the bubble to open the keyboard; tap away to fold it. Resize live in mobile.html.">
+            <DCArtboard id="kb-closed" label="Play · bubble" width={370} height={512}>
+              <App mode="mode-1" subreddit="retrogaming" day={142} keyboard="custom"
+                   initialPhase="play" initialRevealed={2} initialAttempts={ATTEMPTS_ONE_WRONG} />
+            </DCArtboard>
+            <DCArtboard id="kb-open" label="Keyboard open · suggestions" width={370} height={512}>
+              <App mode="mode-1" subreddit="retrogaming" day={142} keyboard="custom"
+                   initialPhase="play" initialRevealed={2} initialAttempts={ATTEMPTS_ONE_WRONG}
+                   initialKeyboardOpen initialDraft="S" />
+            </DCArtboard>
+            <DCArtboard id="kb-dup" label="Keyboard open · already guessed" width={370} height={512}>
+              <App mode="mode-1" subreddit="retrogaming" day={142} keyboard="custom"
+                   initialPhase="play" initialRevealed={4} initialAttempts={ATTEMPTS_THREE_WRONG}
+                   initialKeyboardOpen initialDraft="Strider" />
+            </DCArtboard>
+            <DCArtboard id="kb-short" label="Short post · 370 × 420" width={370} height={420}>
+              <App mode="mode-1" subreddit="retrogaming" day={142} keyboard="custom"
+                   initialPhase="play" initialRevealed={3} initialAttempts={ATTEMPTS_ONE_WRONG}
+                   initialKeyboardOpen initialDraft="Sonic" />
+            </DCArtboard>
+          </DCSection>
+
+          {/* ============================================================
+              SECTION — Logged-out variants (Devvit §6: core gameplay
+              must work without an account; gate social features at
+              natural breakpoints).
+              ============================================================ */}
+          <DCSection id="logged-out" title="Logged-out users"
+                     subtitle="Devvit §6 — anyone can play; sign-in prompts only at natural breakpoints (splash CTA, post-solve).">
+            <DCArtboard id="lo-splash" label="Splash · guest mode" width={540} height={600}>
+              <App mode="mode-1" subreddit="retrogaming" day={142} initialPhase="splash" loggedIn={false} />
+            </DCArtboard>
+            <DCArtboard id="lo-solve" label="Solve · sign-in prompt" width={540} height={600}>
+              <App mode="mode-1" subreddit="retrogaming" day={142}
+                   initialPhase="solve"
+                   initialRevealed={3}
+                   initialAttempts={ATTEMPTS_SOLVED_IN_3}
+                   loggedIn={false} />
+            </DCArtboard>
+          </DCSection>
+
+        </DesignCanvas>
+        </React.Fragment>
+      );
+    }
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<Page />);
+  </script>
+</body>
+</html>

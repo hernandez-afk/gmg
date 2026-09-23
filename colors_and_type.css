@@ -1,0 +1,237 @@
+/* =============================================================
+   Guess the Game — Colors & Type
+   -------------------------------------------------------------
+   Source: Figma "Guess the Game Tester" (_fig/Guess-the-Game-Tester/tokens.css)
+   The Figma file ships five color *modes*; each mode is a
+   per-subreddit reskin of the same game loop. Mode 1 is the
+   canonical MobyGames-flavored palette.
+   ============================================================= */
+
+/* ---- Self-hosted brand fonts ------------------------------- */
+/* Fugaz One (display) and Work Sans (UI). Local .ttf files in /fonts. */
+@font-face {
+  font-family: "Fugaz One";
+  src: url("fonts/FugazOne-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Work Sans";
+  src: url("fonts/WorkSans-VariableFont_wght.ttf") format("truetype-variations"),
+       url("fonts/WorkSans-VariableFont_wght.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Work Sans";
+  src: url("fonts/WorkSans-Italic-VariableFont_wght.ttf") format("truetype-variations"),
+       url("fonts/WorkSans-Italic-VariableFont_wght.ttf") format("truetype");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* =============================================================
+   THEME MODES — per-subreddit reskins
+   ============================================================= */
+
+:root,
+[data-mode="mode-1"] {
+  /* Mode 1 — MobyGames classic (yellow / deep teal-blue) */
+  --moby-yellow:        rgb(255, 174,  23);
+  --moby-dark-yellow:   rgb(160, 110,  17);
+  --light-moby-blue:    rgb(  0, 116, 200);
+  --moby-dark-blue:     rgb(  0,  91, 111);
+  --white:              rgb(255, 255, 255);
+  --accent:            var(--moby-yellow);
+  --accent-secondary:  var(--moby-dark-yellow);
+  --base:              var(--light-moby-blue);
+  --base-secondary:    var(--moby-dark-blue);
+  --text:              var(--white);
+  --ink-dark:          var(--moby-dark-blue);
+  --ink-on-light:      var(--moby-dark-yellow);
+  --surface-card:      var(--white);
+  --surface-deep:      var(--moby-dark-blue);
+  --surface-stage:     var(--light-moby-blue);
+
+}
+
+[data-mode="mode-2"] {
+  /* Mode 2 — Forest (lime greens, leaf shadow) — r/retrogaming candidate */
+  --moby-yellow:        rgb( 68, 144, 199);
+  --moby-dark-yellow:   rgb(  7, 123, 148);
+  --light-moby-blue:    rgb(104, 198,  96);
+  --moby-dark-blue:     rgb( 37,  95,  32);
+  --white:              rgb(255, 255, 255);
+  --accent:            var(--moby-yellow);
+  --accent-secondary:  var(--moby-dark-yellow);
+  --base:              var(--light-moby-blue);
+  --base-secondary:    var(--moby-dark-blue);
+  --text:              var(--white);
+  --ink-dark:          var(--moby-dark-blue);
+  --ink-on-light:      var(--moby-dark-yellow);
+  --surface-card:      var(--white);
+  --surface-deep:      var(--moby-dark-blue);
+  --surface-stage:     var(--light-moby-blue);
+
+}
+
+[data-mode="mode-3"] {
+  /* Mode 3 — Banana (yellow primary, hot green accents) */
+  --moby-yellow:        rgb( 31, 161,  20);
+  --moby-dark-yellow:   rgb(160, 110,  17);
+  --light-moby-blue:    rgb(239, 171,   1);
+  --moby-dark-blue:     rgb( 90,  61,   7);
+  --white:              rgb(255, 255, 255);
+  --accent:            var(--moby-yellow);
+  --accent-secondary:  var(--moby-dark-yellow);
+  --base:              var(--light-moby-blue);
+  --base-secondary:    var(--moby-dark-blue);
+  --text:              var(--white);
+  --ink-dark:          var(--moby-dark-blue);
+  --ink-on-light:      var(--moby-dark-yellow);
+  --surface-card:      var(--white);
+  --surface-deep:      var(--moby-dark-blue);
+  --surface-stage:     var(--light-moby-blue);
+
+}
+
+[data-mode="mode-4"] {
+  /* Mode 4 — Sepia (warm yellows, muted) — r/CRPG candidate */
+  --moby-yellow:        rgb( 31, 161,  20);
+  --moby-dark-yellow:   rgb(160, 110,  17);
+  --light-moby-blue:    rgb(239, 171,   1);
+  --moby-dark-blue:     rgb( 90,  61,   7);
+  --white:              rgb(255, 255, 255);
+  --accent:            var(--moby-yellow);
+  --accent-secondary:  var(--moby-dark-yellow);
+  --base:              var(--light-moby-blue);
+  --base-secondary:    var(--moby-dark-blue);
+  --text:              var(--white);
+  --ink-dark:          var(--moby-dark-blue);
+  --ink-on-light:      var(--moby-dark-yellow);
+  --surface-card:      var(--white);
+  --surface-deep:      var(--moby-dark-blue);
+  --surface-stage:     var(--light-moby-blue);
+
+}
+
+[data-mode="mode-5"] {
+  /* Mode 5 — Sea-glass (cyan + lime) — indie/roguelike candidate */
+  --moby-yellow:        rgb(  0, 138, 213);
+  --moby-dark-yellow:   rgb( 43, 212, 186);
+  --light-moby-blue:    rgb(177, 224,  87);
+  --moby-dark-blue:     rgb( 66, 106,  59);
+  --white:              rgb(255, 255, 255);
+  --accent:            var(--moby-yellow);
+  --accent-secondary:  var(--moby-dark-yellow);
+  --base:              var(--light-moby-blue);
+  --base-secondary:    var(--moby-dark-blue);
+  --text:              var(--white);
+  --ink-dark:          var(--moby-dark-blue);
+  --ink-on-light:      var(--moby-dark-yellow);
+  --surface-card:      var(--white);
+  --surface-deep:      var(--moby-dark-blue);
+  --surface-stage:     var(--light-moby-blue);
+
+}
+
+/* =============================================================
+   SEMANTIC ROLES (alias layer)
+   The whole UI references these — never the raw moby-* names
+   directly. Swap modes by flipping :root[data-mode].
+   ============================================================= */
+:root {
+  /* Semantic role aliases live inside each [data-mode] block.
+     Structural tokens (shadows, radii, spacing) stay here. */
+  /* Hard-shadow offsets — the game's defining elevation language.
+     There is NO blur. Always solid offset shadows in --base-secondary. */
+  --shadow-sm: 0 4px 0 0 var(--base-secondary);
+  --shadow-md: 0 6px 1px 0 var(--base-secondary);
+  --shadow-lg: 0 10px 0 0 var(--base-secondary);
+
+  /* Stroke widths used on display type & cards */
+  --stroke-1: 2px;
+  --stroke-2: 3px;
+
+  /* Radii */
+  --radius-pill:  9999px;
+  --radius-card:  12px;
+  --radius-chip:  8px;
+  --radius-input: 10px;
+
+  /* Spacing scale (loose, used for layout rhythm) */
+  --s-1:  4px;
+  --s-2:  8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  24px;
+  --s-6:  32px;
+  --s-7:  48px;
+  --s-8:  64px;
+}
+
+/* =============================================================
+   TYPOGRAPHY
+   Display = Fugaz One. ALWAYS in chunky uppercase / title-case
+   with a stroke (border in the Figma component is faked as
+   text-stroke + drop-shadow).
+   UI / body = Work Sans (400/500/600/700/800).
+   ============================================================= */
+:root {
+  --font-display: "Fugaz One", "Bowlby One", system-ui, sans-serif;
+  --font-ui:      "Work Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Sizes from the Figma component + sensible neighbors */
+  --fs-display-xl: 64px;   /* hero / splash game title */
+  --fs-display-lg: 50px;   /* level numerals */
+  --fs-display-md: 32px;   /* "Level Title" */
+  --fs-display-sm: 22px;   /* small display badges */
+
+  --fs-ui-xl:  22px;       /* large UI labels */
+  --fs-ui-lg:  18px;       /* "Game Title" pill */
+  --fs-ui-md:  16px;       /* body */
+  --fs-ui-sm:  14px;       /* secondary / meta */
+  --fs-ui-xs:  12px;       /* micro / counters */
+
+  --lh-tight:  100%;
+  --lh-body:   140%;
+}
+
+html, body {
+  font-family: var(--font-ui);
+  color: var(--ink-dark);
+  background: var(--surface-stage);
+}
+
+/* ---- Display: Fugaz One + dark-blue stroke + drop shadow ---- */
+.display,
+h1.display, h2.display, h3.display {
+  font-family: var(--font-display);
+  font-weight: 400; /* Fugaz One has one weight */
+  color: var(--text);
+  line-height: var(--lh-tight);
+  letter-spacing: 0.005em;
+  -webkit-text-stroke: var(--stroke-2) var(--base-secondary);
+  paint-order: stroke fill;
+  text-shadow: var(--shadow-md);
+}
+
+.display--xl { font-size: var(--fs-display-xl); }
+.display--lg { font-size: var(--fs-display-lg); }
+.display--md { font-size: var(--fs-display-md); }
+.display--sm { font-size: var(--fs-display-sm); }
+
+/* ---- UI / body ---------------------------------------------- */
+.t-ui-xl  { font: 700 var(--fs-ui-xl)/var(--lh-tight) var(--font-ui); }
+.t-ui-lg  { font: 700 var(--fs-ui-lg)/var(--lh-tight) var(--font-ui); }
+.t-ui-md  { font: 500 var(--fs-ui-md)/var(--lh-body)  var(--font-ui); }
+.t-ui-sm  { font: 500 var(--fs-ui-sm)/var(--lh-body)  var(--font-ui); color: var(--ink-on-light); }
+.t-ui-xs  { font: 600 var(--fs-ui-xs)/var(--lh-body)  var(--font-ui); letter-spacing: 0.04em; text-transform: uppercase; }
+
+/* Body baseline */
+p, li, dd, dt { font: 500 var(--fs-ui-md)/var(--lh-body) var(--font-ui); }
+strong { font-weight: 700; }
+em { font-style: italic; font-weight: 500; }

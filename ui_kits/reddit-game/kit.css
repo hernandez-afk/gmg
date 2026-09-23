@@ -1,0 +1,352 @@
+/* =============================================================
+   Reddit Game UI Kit — kit-level styles
+   Loads colors_and_type.css via @import.
+   ============================================================= */
+@import url("../../colors_and_type.css");
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+
+body {
+  background: var(--base);
+  min-height: 100vh;
+  font-family: var(--font-ui);
+  color: var(--ink-dark);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- App frame --------------------------------------------- */
+/* The frame fills its parent (a design-canvas artboard, an iframe,
+   or the body). It scrolls vertically — the guess input inside
+   PlayBoard uses position:sticky to stay parked at the bottom
+   while the past clues scroll past it. */
+.frame {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  /* Consistent embed border across every screen (feedback: the border
+     should be consistent from page to page). */
+  border: 3px solid var(--base-secondary);
+  border-radius: 16px;
+  background: var(--base);
+}
+
+/* ---- Generic primitives ------------------------------------ */
+.btn {
+  border: 2px solid var(--base-secondary);
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-weight: 800;
+  font-size: 16px;
+  padding: 13px 20px;
+  line-height: 1;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.12s ease;
+  background: #fff;
+  color: var(--ink-dark);
+  box-shadow: var(--shadow-md);
+}
+.btn:hover { filter: brightness(1.04); transform: translateY(-1px); }
+.btn:active { transform: translateY(3px); box-shadow: 0 0 0 0 var(--base-secondary); }
+.btn-primary {
+  background: var(--accent);
+  color: var(--base-secondary);
+  -webkit-text-stroke: 0;
+}
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--base-secondary);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 6px 8px;
+  text-transform: lowercase;
+  letter-spacing: 0.01em;
+}
+.btn-ghost:active { transform: none; }
+.btn:disabled { background: var(--accent-secondary); color: rgba(255,255,255,0.6); -webkit-text-stroke: 0; box-shadow: none; opacity: 0.7; cursor: not-allowed; }
+
+.card {
+  background: var(--surface-card);
+  border: 2px solid var(--base-secondary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+}
+
+.eyebrow {
+  font: 700 10px/1 var(--font-ui);
+  color: var(--text);
+  opacity: 0.85;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+}
+
+/* ---- Display text shortcuts -------------------------------- */
+.dt {
+  font-family: var(--font-display);
+  color: var(--text);
+  line-height: 1;
+  -webkit-text-stroke: 2px var(--base-secondary);
+  paint-order: stroke fill;
+  text-shadow: var(--shadow-md);
+}
+.dt-xl { font-size: 60px; -webkit-text-stroke-width: 3px; }
+.dt-lg { font-size: 38px; -webkit-text-stroke-width: 2.5px; }
+.dt-md { font-size: 28px; }
+.dt-sm { font-size: 20px; -webkit-text-stroke-width: 1.5px; text-shadow: 0 4px 0 var(--base-secondary); }
+
+/* ---- Pop-in entry animation -------------------------------- */
+@keyframes stick {
+  0%   { transform: translateY(10px) scale(0.96); opacity: 0; }
+  60%  { transform: translateY(-2px) scale(1.02); opacity: 1; }
+  100% { transform: translateY(0)    scale(1);    opacity: 1; }
+}
+.stick-in { animation: stick 280ms cubic-bezier(.34,1.56,.64,1) both; }
+
+/* ---- Moby idle float — single-layer whale bob (text stays still) ---- */
+@keyframes moby-float {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  20%  { transform: translate(3px, -7px) rotate(-4deg); }
+  45%  { transform: translate(-2px, 2px) rotate(3deg); }
+  70%  { transform: translate(2px, -4px) rotate(-2deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+.moby-float { transform-origin: 50% 60%; animation: moby-float 2s ease-in-out infinite; will-change: transform; }
+@media (prefers-reduced-motion: reduce) { .moby-float { animation: none; } }
+
+/* ---- Moby idle float (ported from Figma "Moby Animation" 30:1061) --
+   The wordmark + ellipse stay still; only the whale group and wire move,
+   each property on its own 2s loop matching the source's per-axis timing. */
+@keyframes moby-whale-x {
+  0% { transform: translateX(0); } 20% { transform: translateX(4px); }
+  45% { transform: translateX(-3px); } 70% { transform: translateX(2px); }
+  100% { transform: translateX(0); }
+}
+@keyframes moby-whale-y {
+  0% { transform: translateY(0); } 25% { transform: translateY(-8px); }
+  50% { transform: translateY(2px); } 75% { transform: translateY(-5px); }
+  100% { transform: translateY(0); }
+}
+@keyframes moby-whale-rot {
+  0% { transform: rotate(0deg); } 17.5% { transform: rotate(-5deg); }
+  42.5% { transform: rotate(4deg); } 67.5% { transform: rotate(-3deg); }
+  100% { transform: rotate(0deg); }
+}
+@keyframes moby-wire {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  25%  { transform: translate(2px, -4px) rotate(-3deg); }
+  33.1%{ transform: translate(0.78px, -2.32px) rotate(-1.38deg); }
+  38.5%{ transform: translate(0.03px, -1.19px) rotate(-0.3deg); }
+  50%  { transform: translate(-1.5px, 1px) rotate(2deg); }
+  75%  { transform: translate(1px, -2.5px) rotate(-1.5deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+.moby-whale-x { animation: moby-whale-x 2s ease-in-out infinite; will-change: transform; }
+.moby-whale-y { animation: moby-whale-y 2s ease-in-out infinite; will-change: transform; }
+.moby-whale-rot { animation: moby-whale-rot 2s ease-in-out infinite; transform-origin: 50% 50%; will-change: transform; }
+.moby-wire { animation: moby-wire 2s ease-in-out infinite; will-change: transform; }
+@media (prefers-reduced-motion: reduce) {
+  .moby-whale-x, .moby-whale-y, .moby-whale-rot, .moby-wire { animation: none; }
+}
+
+/* ---- Live dot --------------------------------------------- */
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(31,143,59,0.20); }
+  50%      { box-shadow: 0 0 0 8px rgba(31,143,59,0); }
+}
+.live-dot { display:inline-block; width: 9px; height: 9px; border-radius: 50%; background: #1f8f3b; animation: pulse 1.5s infinite; }
+
+/* ---- Inputs ----------------------------------------------- */
+input.guess {
+  width: 100%;
+  background: #fff;
+  border: 2px solid var(--base-secondary);
+  border-radius: 12px;
+  padding: 14px 16px;
+  font: 700 17px/1 var(--font-ui);
+  color: var(--ink-dark);
+  box-shadow: var(--shadow-sm);
+  outline: none;
+}
+input.guess:focus { outline: 3px solid var(--accent); outline-offset: 2px; }
+input.guess::placeholder { color: rgba(0,91,111,0.45); font-weight: 600; }
+
+/* ---- Phone guess keyboard (Play screens · Reddit-app embed) --------
+   Used by components/GuessKeyboard.jsx. The PlayBoard root is the size
+   container, so keys scale with the embed (cqw / cqh) instead of the
+   device viewport. Each size has a px fallback for older webviews. */
+.kb-host { container-type: size; }
+
+.kb-dock {
+  --kb-gap: 5px;
+  --kb-gap: clamp(3px, 1.3cqw, 7px);
+  --kb-h: 38px;
+  --kb-h: clamp(28px, 7cqh, 46px);
+  --kb-fs: 17px;
+  --kb-fs: clamp(13px, 4.4cqw, 19px);
+  --kb-tray-bg: color-mix(in srgb, var(--base-secondary) 32%, var(--base));
+  --kb-mod-bg: color-mix(in srgb, var(--base-secondary) 70%, var(--base));
+  --kb-miss: #b73a3a;
+  position: relative;
+  z-index: 4;
+  flex: none;
+  background: var(--base);
+  border-top: 2px solid var(--base-secondary);
+  box-shadow: 0 -6px 0 0 var(--base-secondary);
+}
+
+.kb-bar { display: flex; gap: 8px; align-items: stretch; padding: 10px 16px 12px; }
+.kb-dock.is-open .kb-bar { padding-bottom: 10px; }
+.kb-banner { padding: 10px 16px 0; }
+.kb-banner + .kb-bar { padding-top: 0; }
+
+.kb-field {
+  flex: 1; min-width: 0; height: 46px;
+  display: flex; align-items: center; gap: 1px;
+  padding: 0 8px 0 14px;
+  background: #fff;
+  border: 2px solid var(--base-secondary);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  font: 700 16px/1 var(--font-ui);
+  color: var(--ink-dark);
+  cursor: text;
+  white-space: nowrap;
+  overflow: hidden;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.kb-field:focus-visible,
+.kb-field.is-open { outline: 3px solid var(--accent); outline-offset: 2px; }
+.kb-field.is-dup { border-color: var(--kb-miss); color: var(--kb-miss); outline-color: var(--kb-miss); }
+.kb-field.is-disabled { opacity: 0.6; cursor: not-allowed; }
+.kb-field.is-nudge { animation: kb-nudge 0.36s ease; }
+
+/* Long guesses keep their tail (and the caret) in view. */
+.kb-text { flex: 0 1 auto; min-width: 0; display: flex; justify-content: flex-end; overflow: hidden; }
+.kb-text > span { white-space: pre; }
+.kb-ph { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: color-mix(in srgb, var(--ink-dark) 45%, transparent); font-weight: 600; }
+.kb-caret { flex: none; width: 2px; height: 1.2em; margin: 0 1px; border-radius: 1px; background: currentColor; animation: kb-blink 1s steps(1) infinite; }
+.kb-clear {
+  flex: none; margin-left: auto;
+  width: 26px; height: 26px; padding: 0; border-radius: 50%;
+  display: grid; place-items: center;
+  border: 2px solid var(--base-secondary);
+  background: var(--kb-mod-bg); color: var(--text);
+  cursor: pointer; font-size: 14px;
+}
+.kb-guess { min-width: 70px; font-size: 15px; padding: 12px 16px; }
+
+/* Tray opens by animating its row from 0fr → 1fr (true height tween). */
+.kb-tray-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 220ms cubic-bezier(.2,.8,.2,1); }
+.kb-dock.is-open .kb-tray-wrap { grid-template-rows: 1fr; }
+.kb-tray { min-height: 0; overflow: hidden; background: var(--kb-tray-bg); border-top: 2px solid var(--base-secondary); }
+.kb-dock:not(.is-open) .kb-tray { visibility: hidden; transition: visibility 0s 220ms; }
+
+/* Suggestion strip — sits where a phone's predictive bar would. */
+.kb-suggest {
+  display: flex; align-items: center; gap: 6px;
+  min-height: calc(var(--kb-h) - 2px);
+  padding: 7px 10px 5px;
+  overflow-x: auto; overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.kb-suggest::-webkit-scrollbar { display: none; }
+.kb-hint { font: 600 12px/1 var(--font-ui); color: var(--text); opacity: 0.85; white-space: nowrap; }
+.kb-hint--lead { font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; font-size: 10px; }
+.kb-chip {
+  flex: none; display: inline-flex; align-items: center; gap: 6px;
+  max-width: 70%;
+  padding: 6px 10px; border-radius: var(--radius-pill);
+  border: 2px solid var(--base-secondary);
+  background: #fff; color: var(--ink-dark);
+  box-shadow: 0 2px 0 var(--base-secondary);
+  font: 700 13px/1 var(--font-ui);
+  cursor: pointer; touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.kb-chip:active { transform: translateY(2px); box-shadow: none; }
+.kb-chip-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.kb-chip.is-miss { border-color: var(--kb-miss); color: var(--kb-miss); box-shadow: 0 2px 0 var(--kb-miss); }
+.kb-chip.is-miss .kb-chip-name { text-decoration: line-through; text-decoration-thickness: 1.5px; }
+.kb-chip-tag {
+  flex: none; padding: 2px 6px; border-radius: var(--radius-pill);
+  background: var(--kb-miss); color: #fff;
+  font: 800 9px/1.1 var(--font-ui); text-transform: uppercase; letter-spacing: 0.06em;
+}
+.kb-dup {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 11px; border-radius: var(--radius-pill);
+  background: #fff; border: 2px solid var(--kb-miss);
+  box-shadow: 0 2px 0 var(--kb-miss);
+  font: 800 12px/1 var(--font-ui); color: var(--kb-miss);
+  white-space: nowrap;
+}
+
+/* Keys */
+.kb-keys { display: flex; flex-direction: column; gap: var(--kb-gap); padding: 4px 4px 8px; }
+.kb-row { display: flex; gap: var(--kb-gap); }
+.kb-pad { flex: 0.5 1 0; }
+.kb-pad--wide { flex-grow: 1.5; }
+.kb-key {
+  flex: 1 1 0; min-width: 0;
+  height: var(--kb-h);
+  margin-bottom: 3px;
+  padding: 0;
+  display: grid; place-items: center;
+  border: 2px solid var(--base-secondary);
+  border-radius: var(--radius-chip);
+  background: #fff;
+  color: var(--ink-dark);
+  box-shadow: 0 3px 0 var(--base-secondary);
+  font: 700 var(--kb-fs)/1 var(--font-ui);
+  cursor: pointer;
+  user-select: none; -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: transform 60ms ease, box-shadow 60ms ease;
+}
+.kb-key--mod { flex-grow: 1.5; background: var(--kb-mod-bg); color: var(--text); }
+.kb-key--mod.is-on { background: #fff; color: var(--ink-dark); }
+.kb-key--wide { flex-grow: 2.2; font-size: calc(var(--kb-fs) * 0.8); font-weight: 800; }
+.kb-key--space { flex-grow: 5.6; font-size: calc(var(--kb-fs) * 0.8); color: color-mix(in srgb, var(--ink-dark) 55%, transparent); }
+.kb-key--go { background: var(--accent); color: var(--base-secondary); }
+.kb-key.is-down {
+  transform: translateY(3px);
+  box-shadow: 0 0 0 var(--base-secondary);
+  background: var(--accent);
+  color: var(--base-secondary);
+}
+.kb-key:disabled { background: var(--accent-secondary); color: rgba(255,255,255,0.65); box-shadow: none; transform: translateY(3px); cursor: not-allowed; }
+
+@keyframes kb-blink { 50% { opacity: 0; } }
+@keyframes kb-nudge {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kb-tray-wrap, .kb-key { transition: none; }
+  .kb-caret, .kb-field.is-nudge { animation: none; }
+}
+
+/* While typing on a short post, give the clue the room: drop the top bar
+   and tighten the clue header. Taller posts keep the full layout. */
+.kb-host.is-typing .kb-middle { padding-top: 8px !important; padding-bottom: 8px !important; }
+@container (max-height: 580px) {
+  .kb-host.is-typing .kb-topchrome { display: none; }
+  .kb-host.is-typing .kb-cluehead > div:first-child { width: 24px !important; height: 24px !important; font-size: 12px !important; }
+  .kb-host.is-typing .kb-cluehead .dt { font-size: 17px !important; }
+}

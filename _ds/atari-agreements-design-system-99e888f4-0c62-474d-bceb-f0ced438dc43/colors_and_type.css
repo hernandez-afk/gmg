@@ -1,0 +1,146 @@
+/* ============================================================
+   ATARI AGREEMENTS — Design Tokens (colors + type)
+   Import this file first in any artifact:
+     <link rel="stylesheet" href="colors_and_type.css">
+   Fonts: Atari 1972 (local .otf in /fonts), plus Google Fonts
+   (Figtree, Poppins, Libre Baskerville, IBM Plex Sans).
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* --- Atari 1972 display face (brand) --- */
+@font-face {
+  font-family: "Atari 1972";
+  src: url("fonts/Atari1972-Regular.otf") format("opentype");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Atari 1972";
+  src: url("fonts/Atari1972-Bold.otf") format("opentype");
+  font-weight: 700;
+  font-display: swap;
+}
+
+:root {
+  /* ---------- NEUTRALS ---------- */
+  --background:      rgb(254,254,249);  /* #FEFEF9 main app background (off-white) */
+  --surface-base:    rgb(245,241,232);  /* #F5F1E8 warm cream primary surface */
+  --surface-base-2:  rgb(232,220,203);  /* #E8DCCB light tan — hover on surface */
+  --surface-base-3:  rgb(214,200,180);  /* #D6C8B4 taupe — selected / pressed */
+  --surface-gray:    rgb(247,247,247);  /* #F7F7F7 cool light gray fill */
+  --border:          rgb(232,220,203);  /* #E8DCCB default hairline border */
+  --border-strong:   rgb(214,200,180);  /* #D6C8B4 stronger border */
+  --white:           rgb(255,255,255);
+
+  /* ---------- TEXT ---------- */
+  --text-primary:    rgb(43,43,43);     /* #2B2B2B headings + body */
+  --text-secondary:  rgb(107,98,87);    /* #6B6257 warm taupe-gray, captions / inactive */
+  --text-on-dark:    rgb(245,241,232);  /* #F5F1E8 text on brick/brown panels */
+
+  /* ---------- BRAND ---------- */
+  --atari-red:       rgb(220,0,50);     /* #DC0032 Atari logo crimson */
+  --brand-brick:     rgb(137,44,27);    /* #892C1B dark brick — header panels, upload btn */
+
+  /* ---------- ACCENTS ---------- */
+  --accent-neutral:        rgb(74,44,36);    /* #4A2C24 deep brown — active pills, primary UI */
+  --accent-neutral-active: rgb(160,143,140); /* #A08F8C muted mauve */
+  --accent:                rgb(58,74,106);   /* #3A4A6A navy slate — accent buttons */
+  --accent-2:              rgb(51,54,63);    /* #33363F dark slate — accent shading */
+  --accent-active:         rgb(153,161,175); /* #99A1AF cool gray-blue */
+  --accent-active-hover:   rgb(231,233,238); /* #E7E9EE pale */
+
+  /* ---------- AI ---------- */
+  --ai:        rgb(105,41,196);   /* #6929C4 AI feature purple */
+  --ai-hover:  rgb(138,56,245);   /* #8A38F5 AI hover / annotation */
+
+  /* ---------- SEVERITY ---------- */
+  --negative:        rgb(220,0,50);    /* #DC0032 destructive / alert */
+  --negative-hover:  rgb(137,44,27);   /* #892C1B */
+  --negative-soft:   rgb(250,229,233);  /* light red tint for label bg */
+  --warning:         rgb(193,160,99);  /* #C1A063 gold */
+  --warning-hover:   rgb(195,106,74);  /* #C36A4A terracotta */
+  --warning-soft:    rgb(245,237,222);
+  --positive:        rgb(175,195,162); /* #AFC3A2 sage */
+  --positive-hover:  rgb(89,121,88);   /* #597958 forest */
+  --positive-soft:   rgb(232,239,227);
+
+  /* ---------- ELEVATION (warm, low) ---------- */
+  --shadow-sm: 0 4px 6px -4px rgba(0,0,0,0.10);
+  --shadow-md: 0 4px 8px 0 rgba(0,0,0,0.20);
+  --shadow-lg: 0 6px 20px 0 rgba(0,0,0,0.20);
+  --shadow-pop: 0 8px 28px -6px rgba(74,44,36,0.22);
+
+  /* ---------- RADII ---------- */
+  --r-xs: 5px;
+  --r-sm: 8px;
+  --r-md: 16px;   /* buttons, pills, accordions */
+  --r-lg: 24px;   /* image containers / inner cards */
+  --r-xl: 32px;   /* page cards / screens */
+  --r-pill: 999px;
+
+  /* ---------- SPACING (8px base; figma uses 4/8/12/16/24/32/64) ---------- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-6: 24px;
+  --sp-8: 32px;
+  --sp-16: 64px;
+
+  /* ---------- TYPE FAMILIES (only 3 faces) ---------- */
+  --font-display: "Atari 1972", "Century Gothic", system-ui, sans-serif; /* brand / page + section titles */
+  --font-sans:    "Figtree", system-ui, -apple-system, sans-serif;       /* headings + body */
+  --font-ui:      "Poppins", system-ui, sans-serif;                      /* small UI text, nav, captions */
+  /* aliases kept so older references resolve to the 3 approved faces */
+  --font-title:   var(--font-display);
+  --font-mono:    var(--font-ui);
+}
+
+/* ============================================================
+   SEMANTIC TYPE CLASSES
+   ============================================================ */
+
+/* Brand wordmark / hero (Atari 1972) */
+.t-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 64px;
+  line-height: 80px;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+}
+.t-display-sm {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 40px;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+}
+
+/* Content page / section title (e.g. "Agreement Details") — Atari 1972 */
+.t-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 34px;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  color: var(--text-primary);
+}
+
+/* Heading 1 / 2 / 3 (Figtree) */
+.t-h1 { font-family: var(--font-sans); font-weight: 500; font-size: 32px; line-height: 40px; color: var(--text-primary); }
+.t-h2 { font-family: var(--font-sans); font-weight: 500; font-size: 24px; line-height: 32px; color: var(--text-primary); }
+.t-h3 { font-family: var(--font-sans); font-weight: 500; font-size: 18px; line-height: 24px; color: var(--text-primary); }
+
+/* Subtitle (Figtree Light) */
+.t-subtitle { font-family: var(--font-sans); font-weight: 300; font-size: 24px; line-height: 32px; color: var(--text-secondary); }
+
+/* Body + UI */
+.t-body   { font-family: var(--font-sans); font-weight: 400; font-size: 14px; line-height: 20px; color: var(--text-primary); }
+.t-body-m { font-family: var(--font-sans); font-weight: 500; font-size: 14px; line-height: 20px; color: var(--text-primary); }
+.t-ui     { font-family: var(--font-ui);  font-weight: 400; font-size: 14px; line-height: 16px; color: var(--text-primary); }
+.t-ui-b   { font-family: var(--font-ui);  font-weight: 700; font-size: 14px; line-height: 16px; color: var(--text-primary); }
+.t-caption{ font-family: var(--font-ui);  font-weight: 300; font-size: 12px; line-height: 16px; color: var(--text-secondary); }
+.t-mono   { font-family: var(--font-ui); font-weight: 500; font-size: 12px; line-height: 16px; letter-spacing: 0.32px; color: var(--text-secondary); }

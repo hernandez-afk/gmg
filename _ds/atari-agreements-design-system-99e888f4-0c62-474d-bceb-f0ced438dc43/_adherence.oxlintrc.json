@@ -1,0 +1,169 @@
+{
+  "plugins": [
+    "react",
+    "import"
+  ],
+  "rules": {
+    "react/forbid-elements": [
+      "warn",
+      {
+        "forbid": []
+      }
+    ],
+    "no-restricted-imports": [
+      "warn",
+      {
+        "patterns": [
+          {
+            "group": [
+              "assets/**",
+              "ui_kits/dashboard/**"
+            ],
+            "message": "Import design-system components from 'index.js', not component internals."
+          }
+        ]
+      }
+    ],
+    "no-restricted-syntax": [
+      "warn",
+      {
+        "selector": "Literal[value=/#[0-9a-fA-F]{3,8}\\b/]",
+        "message": "Raw hex color — use a design-system color token via var()."
+      },
+      {
+        "selector": "Literal[value=/\\b\\d+px\\b/]",
+        "message": "Raw px value — use a design-system spacing token via var()."
+      },
+      {
+        "selector": "Literal[value=/font-family\\s*:\\s*(?!['\\\"]?(?:Atari 1972|Figtree|Poppins))/i]",
+        "message": "Font not provided by the design system. Available: Atari 1972, Figtree, Poppins."
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/index.js"
+      ],
+      "rules": {
+        "no-restricted-imports": "off"
+      }
+    }
+  ],
+  "x-omelette": {
+    "components": {},
+    "tokens": [
+      "--accent",
+      "--accent-2",
+      "--accent-active",
+      "--accent-active-hover",
+      "--accent-neutral",
+      "--accent-neutral-active",
+      "--ai",
+      "--ai-hover",
+      "--atari-red",
+      "--background",
+      "--border",
+      "--border-strong",
+      "--brand-brick",
+      "--font-display",
+      "--font-mono",
+      "--font-sans",
+      "--font-title",
+      "--font-ui",
+      "--negative",
+      "--negative-hover",
+      "--negative-soft",
+      "--positive",
+      "--positive-hover",
+      "--positive-soft",
+      "--r-lg",
+      "--r-md",
+      "--r-pill",
+      "--r-sm",
+      "--r-xl",
+      "--r-xs",
+      "--shadow-lg",
+      "--shadow-md",
+      "--shadow-pop",
+      "--shadow-sm",
+      "--sp-1",
+      "--sp-16",
+      "--sp-2",
+      "--sp-3",
+      "--sp-4",
+      "--sp-6",
+      "--sp-8",
+      "--surface-base",
+      "--surface-base-2",
+      "--surface-base-3",
+      "--surface-gray",
+      "--text-on-dark",
+      "--text-primary",
+      "--text-secondary",
+      "--warning",
+      "--warning-hover",
+      "--warning-soft",
+      "--white"
+    ],
+    "tokenKinds": {
+      "--background": "color",
+      "--surface-base": "color",
+      "--surface-base-2": "color",
+      "--surface-base-3": "color",
+      "--surface-gray": "color",
+      "--border": "color",
+      "--border-strong": "color",
+      "--white": "color",
+      "--text-primary": "font",
+      "--text-secondary": "font",
+      "--text-on-dark": "font",
+      "--atari-red": "color",
+      "--brand-brick": "color",
+      "--accent-neutral": "color",
+      "--accent-neutral-active": "color",
+      "--accent": "color",
+      "--accent-2": "color",
+      "--accent-active": "color",
+      "--accent-active-hover": "color",
+      "--ai": "color",
+      "--ai-hover": "color",
+      "--negative": "color",
+      "--negative-hover": "color",
+      "--negative-soft": "color",
+      "--warning": "color",
+      "--warning-hover": "color",
+      "--warning-soft": "color",
+      "--positive": "color",
+      "--positive-hover": "color",
+      "--positive-soft": "color",
+      "--shadow-sm": "shadow",
+      "--shadow-md": "shadow",
+      "--shadow-lg": "shadow",
+      "--shadow-pop": "shadow",
+      "--r-xs": "spacing",
+      "--r-sm": "spacing",
+      "--r-md": "spacing",
+      "--r-lg": "spacing",
+      "--r-xl": "spacing",
+      "--r-pill": "spacing",
+      "--sp-1": "spacing",
+      "--sp-2": "spacing",
+      "--sp-3": "spacing",
+      "--sp-4": "spacing",
+      "--sp-6": "spacing",
+      "--sp-8": "spacing",
+      "--sp-16": "spacing",
+      "--font-display": "font",
+      "--font-sans": "font",
+      "--font-ui": "font",
+      "--font-title": "font",
+      "--font-mono": "font"
+    },
+    "fontFamilies": [
+      "Atari 1972",
+      "Figtree",
+      "Poppins"
+    ]
+  }
+}
