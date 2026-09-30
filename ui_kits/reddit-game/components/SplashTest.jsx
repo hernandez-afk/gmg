@@ -80,26 +80,49 @@ function SplashTest({ attention = 'none', day = 45, date = 'September 30', subre
 }
 
 // Typewriter prompt with a blinking caret, drawn over the empty input.
+// Long prompts for roomy boxes; short ones when the box is narrow (phones).
 const SP_PROMPTS = ['Name the game…', 'Which game is this?', 'Type your guess…'];
+const SP_PROMPTS_SHORT = ['Name the game…', 'Which game?', 'Your guess…'];
 function TypingPrompt() {
+  const ref = React.useRef(null);
+  const [narrow, setNarrow] = React.useState(false);
+  React.useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const check = () => {
+      // Pick the set whose longest prompt fits the space available.
+      const probe = document.createElement('span');
+      probe.style.cssText = 'position:absolute;visibility:hidden;white-space:nowrap;font:inherit';
+      probe.textContent = SP_PROMPTS.reduce((a, b) => (b.length > a.length ? b : a)) + '|';
+      el.appendChild(probe);
+      const fits = probe.offsetWidth <= el.clientWidth;
+      el.removeChild(probe);
+      setNarrow(!fits);
+    };
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const prompts = narrow ? SP_PROMPTS_SHORT : SP_PROMPTS;
   const reduced = React.useMemo(() => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), []);
-  const [text, setText] = React.useState(reduced ? SP_PROMPTS[0] : '');
+  const [text, setText] = React.useState(reduced ? prompts[0] : '');
   React.useEffect(() => {
     if (reduced) return;
     let i = 0, n = 0, dir = 1, t;
     const step = () => {
-      const full = SP_PROMPTS[i];
+      const full = prompts[i % prompts.length];
       n += dir;
       setText(full.slice(0, n));
       if (dir > 0 && n >= full.length) { dir = -1; t = setTimeout(step, 1800); return; }
-      if (dir < 0 && n <= 0) { dir = 1; i = (i + 1) % SP_PROMPTS.length; t = setTimeout(step, 400); return; }
+      if (dir < 0 && n <= 0) { dir = 1; i = (i + 1) % prompts.length; t = setTimeout(step, 400); return; }
       t = setTimeout(step, dir > 0 ? 75 : 30);
     };
     t = setTimeout(step, 500);
     return () => clearTimeout(t);
-  }, [reduced]);
+  }, [reduced, narrow]);
   return (
-    <span className="sp-typing" aria-hidden="true">
+    <span className="sp-typing" aria-hidden="true" ref={ref}>
       <span>{text}</span><span className="sp-caret" />
     </span>
   );
