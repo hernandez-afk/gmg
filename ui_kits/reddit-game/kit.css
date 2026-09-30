@@ -446,7 +446,11 @@ input.guess::placeholder { color: rgba(0,91,111,0.45); font-weight: 600; }
   pointer-events: none; white-space: nowrap;
 }
 .sp-caret { flex: none; width: 2.5px; height: 1.25em; border-radius: 1px; background: var(--ink-dark); animation: kb-blink 1s steps(1) infinite; }
-.sp-answer.is-type .sp-input { border-color: var(--base-secondary); box-shadow: var(--shadow-sm), 0 0 0 3px color-mix(in srgb, var(--accent) 85%, transparent); }
+/* Even ring with a small gap, same as the focused guess box in Play. An
+   outline follows the corner radius and sits above the drop shadow, so
+   the ring stays the same width all the way round. */
+.sp-answer.is-type .sp-input { outline: 3px solid var(--accent); outline-offset: 3px; }
+.sp-answer.is-type { gap: 14px; }  /* room for the ring before the Guess button */
 .sp-go { min-width: 84px; font-size: 16px; }
 @container (max-width: 400px) {
   .sp-answer { gap: 8px; }
