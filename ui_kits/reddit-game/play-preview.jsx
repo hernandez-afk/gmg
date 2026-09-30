@@ -237,8 +237,17 @@ function SplashWindow({ variant, view, run }) {
     <figure className="sw">
       <figcaption className="sw-cap">
         <span className="sw-tag">{variant.tag}</span>
-        <span><b>{variant.title}</b><span className="d">{variant.d}</span></span>
-        {started && <button className="sw-back" onClick={() => setStarted(null)}>↺ Back to splash</button>}
+        <span className="sw-text">
+          <span className="sw-title">
+            <b>{variant.title}</b>
+            {/* Always in the layout (hidden until used) so pressing the
+                game never resizes the caption or the window. */}
+            <button className="sw-back" onClick={() => setStarted(null)}
+                    style={{ visibility: started ? 'visible' : 'hidden' }}
+                    tabIndex={started ? 0 : -1} aria-hidden={!started}>↺ Back to splash</button>
+          </span>
+          <span className="d">{variant.d}</span>
+        </span>
       </figcaption>
       {phone
         ? <div className="phone is-dark"><div className="statusbar"><span>9:41</span><span aria-hidden="true">▂▄▆ ▮</span></div>{feed}</div>
