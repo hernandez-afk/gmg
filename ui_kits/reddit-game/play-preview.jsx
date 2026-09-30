@@ -136,71 +136,56 @@ function PhoneView(props) {
   );
 }
 
-// Fixed-size desktop mock, scaled down to whatever room the stage has.
+// Fixed-size desktop mock; the stage's Zoomer scales it.
 function ComputerView(props) {
-  const fitRef = React.useRef(null);
-  const [scale, setScale] = React.useState(1);
-  React.useLayoutEffect(() => {
-    const el = fitRef.current;
-    if (!el) return;
-    const fit = () => setScale(Math.min(1, el.clientWidth / 1180));
-    fit();
-    const ro = new ResizeObserver(fit);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
   return (
-    <div className="desk-fit" ref={fitRef} style={{ height: 800 * scale }}>
-      <div className="desk-scale" style={{ transform: `scale(${scale})` }}>
-        <div className="browser">
-          <div className="chrome" aria-hidden="true">
-            <div className="dots"><i /><i /><i /></div>
-            <div className="url">r/retrogaming</div>
-          </div>
-          <div className="site-head" aria-hidden="true">
-            <span className="site-mark" />
-            <div className="search">Search r/retrogaming</div>
-            <span className="avatar" />
-          </div>
-          <div className="site-body">
-            <nav className="nav" aria-hidden="true">
-              <a><i />Home</a>
-              <a><i />Popular</a>
-              <a><i />Explore</a>
-              <h4>Communities</h4>
-              <a className="on"><i style={{ background: 'var(--light-moby-blue)' }} />r/retrogaming</a>
-              <a><i />r/gamecollecting</a>
-              <a><i />r/crtgaming</a>
-              <a><i />r/SEGAGENESIS</a>
-            </nav>
-            <div className="desk-main">
-              <article className="desk-post">
-                <div className="post-head"><span className="sub-icon"><img src="moby-mark.png" alt="" /></span><b>r/retrogaming</b> · 3h</div>
-                <div className="post-title">Guess Moby’s Game — Day #142</div>
-                <Game {...props} />
-                <div className="actions">
-                  <span className="pill">▲ 2.4k ▼</span>
-                  <span className="pill">318 comments</span>
-                  <span className="pill">Share</span>
-                </div>
-              </article>
-              <aside className="side" aria-hidden="true">
-                <div className="side-card">
-                  <h3>r/retrogaming</h3>
-                  <p>Old games, old hardware, and the stories behind them.</p>
-                  <div className="stats">
-                    <div><b>1.2M</b><span>members</span></div>
-                    <div><b>4.8k</b><span>online</span></div>
-                  </div>
-                </div>
-                <div className="side-card">
-                  <h3>Daily game</h3>
-                  <div className="rule">Guess Moby’s Game · a new game every day</div>
-                  <div className="rule">Five clues, six guesses</div>
-                </div>
-              </aside>
+    <div className="browser">
+      <div className="chrome" aria-hidden="true">
+        <div className="dots"><i /><i /><i /></div>
+        <div className="url">r/retrogaming</div>
+      </div>
+      <div className="site-head" aria-hidden="true">
+        <span className="site-mark" />
+        <div className="search">Search r/retrogaming</div>
+        <span className="avatar" />
+      </div>
+      <div className="site-body">
+        <nav className="nav" aria-hidden="true">
+          <a><i />Home</a>
+          <a><i />Popular</a>
+          <a><i />Explore</a>
+          <h4>Communities</h4>
+          <a className="on"><i style={{ background: 'var(--light-moby-blue)' }} />r/retrogaming</a>
+          <a><i />r/gamecollecting</a>
+          <a><i />r/crtgaming</a>
+          <a><i />r/SEGAGENESIS</a>
+        </nav>
+        <div className="desk-main">
+          <article className="desk-post">
+            <div className="post-head"><span className="sub-icon"><img src="moby-mark.png" alt="" /></span><b>r/retrogaming</b> · 3h</div>
+            <div className="post-title">Guess Moby’s Game — Day #142</div>
+            <Game {...props} />
+            <div className="actions">
+              <span className="pill">▲ 2.4k ▼</span>
+              <span className="pill">318 comments</span>
+              <span className="pill">Share</span>
             </div>
-          </div>
+          </article>
+          <aside className="side" aria-hidden="true">
+            <div className="side-card">
+              <h3>r/retrogaming</h3>
+              <p>Old games, old hardware, and the stories behind them.</p>
+              <div className="stats">
+                <div><b>1.2M</b><span>members</span></div>
+                <div><b>4.8k</b><span>online</span></div>
+              </div>
+            </div>
+            <div className="side-card">
+              <h3>Daily game</h3>
+              <div className="rule">Guess Moby’s Game · a new game every day</div>
+              <div className="rule">Five clues, six guesses</div>
+            </div>
+          </aside>
         </div>
       </div>
     </div>
@@ -261,29 +246,44 @@ function SplashWindow({ variant, view, run }) {
 }
 
 function SplashCompare({ view, run }) {
-  // All versions in one row, scaled so the whole row fits the stage's width
-  // and the visible height — no scrolling to compare.
-  const fitRef = React.useRef(null);
-  const pairRef = React.useRef(null);
-  const [fit, setFit] = React.useState({ scale: 1, h: 0 });
+  return (
+    <div className="sw-pair">
+      {SPLASH_VARIANTS.map(v => <SplashWindow key={v.id} variant={v} view={view} run={run} />)}
+    </div>
+  );
+}
+
+// ---- Zoom -------------------------------------------------------------
+// Scales the stage content. "fit" = as large as fits the stage's width and
+// the visible height; a number = that exact scale, with the stage
+// scrolling (both ways) to pan around when it's bigger than the room.
+const ZOOM_STEPS = [0.4, 0.5, 0.6, 0.75, 0.9, 1, 1.25, 1.5];
+function Zoomer({ zoom, onFit, children }) {
+  const outerRef = React.useRef(null);
+  const innerRef = React.useRef(null);
+  const [m, setM] = React.useState({ w: 0, h: 0, fit: 1, availH: 600 });
   React.useLayoutEffect(() => {
-    const el = fitRef.current, pair = pairRef.current;
-    if (!el || !pair) return;
+    const outer = outerRef.current, inner = innerRef.current;
+    if (!outer || !inner) return;
     const measure = () => {
-      const availH = window.innerHeight - el.getBoundingClientRect().top - 56; // leave room for the caption
-      const scale = Math.min(1, el.clientWidth / pair.scrollWidth, availH / pair.offsetHeight);
-      setFit(f => (Math.abs(f.scale - scale) < 0.001 && f.h === pair.offsetHeight ? f : { scale, h: pair.offsetHeight }));
+      const w = inner.offsetWidth, h = inner.offsetHeight;
+      const top = outer.getBoundingClientRect().top + window.scrollY;
+      const availH = Math.max(320, window.innerHeight - top - 56);
+      const fit = Math.min(1, outer.clientWidth / w, availH / h);
+      setM(p => (p.w === w && p.h === h && Math.abs(p.fit - fit) < 0.001 && p.availH === availH ? p : { w, h, fit, availH }));
     };
     measure();
     const ro = new ResizeObserver(measure);
-    ro.observe(el); ro.observe(pair);
+    ro.observe(outer); ro.observe(inner);
     window.addEventListener('resize', measure);
     return () => { ro.disconnect(); window.removeEventListener('resize', measure); };
-  }, [view]);
+  }, []);
+  React.useEffect(() => { onFit && onFit(m.fit); }, [m.fit]);
+  const s = zoom === 'fit' ? m.fit : zoom;
   return (
-    <div className="sw-fit" ref={fitRef} style={{ height: fit.h * fit.scale || undefined }}>
-      <div className="sw-pair" ref={pairRef} style={{ transform: `scale(${fit.scale})` }}>
-        {SPLASH_VARIANTS.map(v => <SplashWindow key={v.id} variant={v} view={view} run={run} />)}
+    <div className="zm" ref={outerRef} style={{ height: m.h ? Math.min(m.h * s, m.availH) + 2 : undefined }}>
+      <div className="zm-size" style={{ width: m.w * s || undefined, height: m.h * s || undefined }}>
+        <div className="zm-inner" ref={innerRef} style={{ transform: `scale(${s})` }}>{children}</div>
       </div>
     </div>
   );
@@ -292,6 +292,14 @@ function SplashCompare({ view, run }) {
 function Preview() {
   const saved = React.useMemo(loadPrefs, []);
   const [screen, setScreen] = React.useState(saved.screen || 'play');
+  const [zoom, setZoom] = React.useState('fit');
+  const [fitScale, setFitScale] = React.useState(1);
+  const shown = zoom === 'fit' ? fitScale : zoom;
+  const zoomBy = (dir) => {
+    const cur = shown;
+    const next = dir > 0 ? ZOOM_STEPS.find(z => z > cur + 0.001) : [...ZOOM_STEPS].reverse().find(z => z < cur - 0.001);
+    if (next) setZoom(next);
+  };
   const [view, setView] = React.useState(saved.view || 'computer');
   const [w, setW] = React.useState(saved.w || 390);
   const [h, setH] = React.useState(saved.h || 512);
@@ -336,6 +344,17 @@ function Preview() {
           <div className="seg big">
             {SCREENS.map(v => <button key={v.id} aria-pressed={screen === v.id} onClick={() => setScreen(v.id)}>{v.label}</button>)}
           </div>
+        </div>
+
+        <div className="ctl only-desktop">
+          <div className="ctl-label">Zoom <b>{Math.round(shown * 100)}%{zoom === 'fit' ? ' · fit' : ''}</b></div>
+          <div className="seg">
+            <button onClick={() => zoomBy(-1)} aria-label="Zoom out">−</button>
+            <button onClick={() => zoomBy(1)} aria-label="Zoom in">+</button>
+            <button aria-pressed={zoom === 'fit'} onClick={() => setZoom('fit')}>Fit</button>
+            <button aria-pressed={zoom === 1} onClick={() => setZoom(1)}>100%</button>
+          </div>
+          {zoom !== 'fit' && shown > fitScale + 0.001 && <p className="note">Scroll or drag the scrollbars to move around.</p>}
         </div>
 
         <div className="ctl">
@@ -412,9 +431,11 @@ function Preview() {
       </aside>
 
       <main className="stage">
-        {screen === 'splash'
-          ? <SplashCompare view={view} run={run} />
-          : view === 'phone' ? <PhoneView {...props} /> : <ComputerView {...props} />}
+        <Zoomer key={`${screen}-${view}`} zoom={zoom} onFit={setFitScale}>
+          {screen === 'splash'
+            ? <SplashCompare view={view} run={run} />
+            : view === 'phone' ? <PhoneView {...props} /> : <ComputerView {...props} />}
+        </Zoomer>
         <p className="stage-cap">
           {screen === 'splash'
             ? 'Each window is its own feed: scroll it to judge how the answer box reads in passing.'
