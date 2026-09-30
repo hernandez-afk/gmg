@@ -15,6 +15,10 @@ const SPLASH_VARIANTS = [
     d: 'The answer bar floats gently and gives the box a small nudge every few seconds until it’s tapped. Catches the eye mid-scroll.' },
   { id: 'type', tag: 'C', title: 'Live caret', pick: true,
     d: 'A blinking cursor types out the prompt inside the box, so it reads as “type here”, not just “look here”. My pick.' },
+  { id: 'motion-type', tag: 'D', title: 'Motion + caret',
+    d: 'B and C together: the bar floats and nudges to catch the eye, while the cursor types the prompt to say “type here”.' },
+  { id: 'glow-type', tag: 'E', title: 'Glow + caret',
+    d: 'A and C together: the halo breathes to catch the eye, while the cursor types the prompt to say “type here”. Calmer than D.' },
 ];
 const VIEWS = [
   { id: 'computer', label: 'Computer' },
@@ -261,21 +265,29 @@ function SplashCompare({ view, run }) {
   const fitRef = React.useRef(null);
   const pairRef = React.useRef(null);
   const [fit, setFit] = React.useState({ scale: 1, h: 0 });
+  // One row while it stays readable; otherwise wrap to two rows, then to two columns.
+  const [cols, setCols] = React.useState(SPLASH_VARIANTS.length);
+  React.useLayoutEffect(() => { setCols(SPLASH_VARIANTS.length); }, [view]);
   React.useLayoutEffect(() => {
     const el = fitRef.current, pair = pairRef.current;
     if (!el || !pair) return;
     const measure = () => {
       const scale = Math.min(1, el.clientWidth / pair.scrollWidth);
+      if (scale < 0.6 && cols > 2) {
+        const half = Math.ceil(SPLASH_VARIANTS.length / 2);
+        setCols(cols > half ? half : 2);
+        return;
+      }
       setFit(f => (Math.abs(f.scale - scale) < 0.001 && f.h === pair.offsetHeight ? f : { scale, h: pair.offsetHeight }));
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el); ro.observe(pair);
     return () => ro.disconnect();
-  }, [view]);
+  }, [view, cols]);
   return (
     <div className="sw-fit" ref={fitRef} style={{ height: fit.h * fit.scale || undefined }}>
-      <div className="sw-pair" ref={pairRef} style={{ transform: `scale(${fit.scale})` }}>
+      <div className="sw-pair" ref={pairRef} style={{ transform: `scale(${fit.scale})`, gridTemplateColumns: `repeat(${cols}, max-content)` }}>
         {SPLASH_VARIANTS.map(v => <SplashWindow key={v.id} variant={v} view={view} run={run} />)}
       </div>
     </div>
@@ -321,7 +333,7 @@ function Preview() {
           <h1>Guess Moby’s Game</h1>
           <p className="lede">{screen === 'play'
             ? 'The daily game as a post in the feed. Switch between computer and phone to see how it sits in each.'
-            : 'Three splash screens side by side. Scroll each feed and see which answer box you notice first.'}</p>
+            : 'Five splash screens side by side. Scroll each feed and see which answer box you notice first.'}</p>
         </div>
 
         <div className="ctl">
@@ -376,7 +388,7 @@ function Preview() {
                 <li key={v.id}><span className="pin">{v.tag}</span><span><b>{v.title}</b><span className="d">{v.d}</span></span></li>
               ))}
             </ol>
-            <p className="note">The logo floats on all three, as it does live. Each effect stops as soon as the player taps the box, and stay still for anyone who has reduced motion turned on. {view === 'phone' ? 'Tapping the box opens the Play screen with the keyboard up.' : 'Typing a guess and pressing Guess starts the Play screen with that guess.'}</p>
+            <p className="note">The logo floats on every version, as it does live. Each effect stops as soon as the player taps the box, and stay still for anyone who has reduced motion turned on. {view === 'phone' ? 'Tapping the box opens the Play screen with the keyboard up.' : 'Typing a guess and pressing Guess starts the Play screen with that guess.'}</p>
           </div>
         )}
 

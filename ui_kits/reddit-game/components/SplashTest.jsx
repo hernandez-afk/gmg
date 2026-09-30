@@ -6,6 +6,10 @@
 //   attention="motion" — the box gently bobs and nudges every few seconds
 //   attention="type"   — a blinking caret types out the prompt, so the box
 //                        reads as "you can type here", not just "look here"
+//   attention="motion-type" — B + C together: the bar floats and nudges
+//                        while the caret types the prompt
+//   attention="glow-type" — A + C together: the halo breathes while the
+//                        caret types the prompt
 //   attention="none"   — as live today
 //
 // Both treatments stop once the player focuses the box (their job is done)
@@ -17,6 +21,9 @@ function SplashTest({ attention = 'none', day = 45, date = 'September 30', subre
   const [value, setValue] = React.useState('');
   const [engaged, setEngaged] = React.useState(false);
   const inputRef = React.useRef(null);
+  // Treatments are CSS classes on the answer bar; a combined one stacks them.
+  const parts = attention.split('-');
+  const typing = parts.includes('type');
 
   const submit = () => {
     const t = value.trim();
@@ -46,12 +53,12 @@ function SplashTest({ attention = 'none', day = 45, date = 'September 30', subre
           </div>
         </div>
 
-        <div className={`sp-answer${engaged ? '' : ` is-${attention}`}`}>
+        <div className={`sp-answer${engaged ? '' : parts.map(a => ` is-${a}`).join('')}`}>
           <span className="sp-field">
           <input
             ref={inputRef}
             className="guess sp-input"
-            placeholder={attention === 'type' && !engaged ? '' : 'Name the game…'}
+            placeholder={typing && !engaged ? '' : 'Name the game…'}
             value={value}
             readOnly={touch}
             inputMode={touch ? 'none' : undefined}
@@ -60,7 +67,7 @@ function SplashTest({ attention = 'none', day = 45, date = 'September 30', subre
             onPointerDown={() => setEngaged(true)}
             onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
           />
-          {attention === 'type' && !engaged && !value && <TypingPrompt />}
+          {typing && !engaged && !value && <TypingPrompt />}
           </span>
           <button className="btn btn-primary sp-go" onClick={() => (value.trim() ? submit() : touch ? onStart && onStart() : inputRef.current && inputRef.current.focus())}>Guess</button>
         </div>

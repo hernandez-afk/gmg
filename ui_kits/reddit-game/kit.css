@@ -451,6 +451,8 @@ input.guess::placeholder { color: rgba(0,91,111,0.45); font-weight: 600; }
    the ring stays the same width all the way round. */
 .sp-answer.is-type .sp-input { outline: 3px solid var(--accent); outline-offset: 3px; }
 .sp-answer.is-type { gap: 14px; }  /* room for the ring before the Guess button */
+/* E · Glow + caret: the breathing halo is the ring, so drop C's outline. */
+.sp-answer.is-glow.is-type .sp-input { outline: none; }
 .sp-go { min-width: 84px; font-size: 16px; }
 @container (max-width: 400px) {
   .sp-answer { gap: 8px; }
