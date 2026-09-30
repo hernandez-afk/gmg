@@ -366,3 +366,117 @@ input.guess::placeholder { color: rgba(0,91,111,0.45); font-weight: 600; }
 }
 .play-end-card { width: 100%; max-width: 360px; padding: 18px 18px 20px; border-radius: 18px; box-shadow: var(--shadow-lg); }
 .play-end-copy { margin: 8px 0 16px; font: 500 15px/1.4 var(--font-ui); color: var(--ink-dark); }
+
+/* ---- Splash test (SplashTest.jsx) ---------------------------------
+   In-feed splash: logo over a blurred first clue, answer bar below.
+   Sizes come from the post itself (container units on .sp-host). */
+.sp-host { container-type: size; }
+.sp {
+  --sp-logo-w: 200px;
+  --sp-logo-w: clamp(130px, min(42cqw, 44cqh), 290px);
+  --sp-col: min(100%, max(82%, 520px));
+  height: 100%; box-sizing: border-box;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 10px 16px 12px;
+  gap: 8px;
+}
+.sp-top { width: 100%; flex: none; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; min-height: 30px; }
+.sp-atari { width: 74px; width: clamp(56px, 13cqw, 84px); height: auto; display: block; }
+.sp-top-right { display: flex; justify-content: flex-end; align-items: center; gap: 8px; }
+.sp-sound {
+  width: 34px; height: 34px; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  background: var(--accent); color: var(--base-secondary);
+  border: 2px solid var(--base-secondary); box-shadow: 0 3px 0 var(--base-secondary);
+}
+.sp-guest {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 7px 12px; border-radius: var(--radius-pill);
+  background: var(--base-secondary); color: var(--text);
+  border: 2px solid color-mix(in srgb, var(--base-secondary) 60%, var(--base));
+  font: 800 11px/1.2 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase;
+}
+.sp-guest i, .sp-live i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; opacity: 0.8; display: block; }
+
+.sp-stage { position: relative; width: var(--sp-col); flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.sp-logo {
+  position: absolute; left: 50%; top: 0; z-index: 2;
+  width: var(--sp-logo-w); height: auto; transform: translateX(-50%);
+  pointer-events: none; user-select: none;
+}
+/* Card starts about halfway down the logo so the logo overlaps its top. */
+.sp-clue { flex: 1 1 auto; min-height: 0; margin-top: calc(var(--sp-logo-w) * 0.698 * 0.52); padding: 6px; position: relative; overflow: hidden; }
+.sp-shot {
+  position: absolute; inset: 6px; border-radius: 8px; overflow: hidden;
+  background:
+    radial-gradient(ellipse 12% 20% at 94% 22%, #2a1a10 0 55%, #e0772b 60%, transparent 72%),
+    radial-gradient(ellipse 14% 10% at 34% 72%, #f4f6f7 0 60%, transparent 75%),
+    radial-gradient(ellipse 30% 22% at 62% 70%, #4a4a42 0 50%, transparent 80%),
+    linear-gradient(180deg, #b9c6ca 0%, #9fb0b6 55%, #5b4a3a 62%, #4a3d30 100%);
+  filter: blur(9px);
+  transform: scale(1.12);
+}
+.sp-cluepill {
+  position: absolute; right: 14px; bottom: 14px; z-index: 1;
+  padding: 5px 12px; border-radius: var(--radius-pill);
+  background: var(--accent); color: var(--base-secondary);
+  border: 2px solid var(--base-secondary); box-shadow: 0 2px 0 var(--base-secondary);
+  font: 800 11px/1.2 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase;
+}
+
+.sp-answer { width: var(--sp-col); flex: none; display: flex; gap: 10px; align-items: stretch; margin-top: 4px; }
+.sp-input { flex: 1; min-width: 0; padding: 14px 16px; font-size: 17px; }
+.sp-go { min-width: 84px; font-size: 16px; }
+
+.sp-how {
+  width: var(--sp-col); flex: none;
+  display: flex; justify-content: flex-end; align-items: center; gap: 6px;
+  font: 800 11px/1.3 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text); text-decoration: underline; text-underline-offset: 3px;
+}
+.sp-q { width: 16px; height: 16px; border-radius: 50%; border: 1.5px solid currentColor; display: grid; place-items: center; font-size: 10px; text-decoration: none; }
+.sp-foot { width: var(--sp-col); flex: none; display: flex; justify-content: space-between; align-items: flex-end; gap: 10px; flex-wrap: wrap; }
+.sp-meta { display: flex; flex-direction: column; gap: 4px; font: 700 12px/1.3 var(--font-ui); color: color-mix(in srgb, var(--text) 80%, transparent); min-width: 0; }
+.sp-signin { font-weight: 800; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+.sp-live {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 12px; border-radius: var(--radius-pill);
+  background: color-mix(in srgb, #fff 82%, var(--base)); color: var(--ink-dark);
+  border: 2px solid var(--base-secondary);
+  font: 700 12px/1.2 var(--font-ui); white-space: nowrap;
+}
+.sp-live i { background: #3aa37a; opacity: 1; }
+/* Short posts: drop the secondary lines before squeezing the clue. */
+@container (max-height: 440px) { .sp-how, .sp-signin { display: none; } }
+
+/* ---- Attention treatments on the answer box ---- */
+/* A · Glow: a soft accent halo that breathes. */
+.sp-answer.is-glow .sp-input {
+  border-color: var(--base-secondary);
+  animation: sp-glow 2.2s ease-in-out infinite;
+}
+@keyframes sp-glow {
+  0%, 100% { box-shadow: var(--shadow-sm), 0 0 0 0 transparent, 0 0 0 0 transparent; }
+  50%      { box-shadow: var(--shadow-sm), 0 0 0 4px var(--accent), 0 0 24px 8px color-mix(in srgb, var(--accent) 65%, transparent); }
+}
+/* B · Motion: the bar floats gently; the box gives a small nudge every few seconds. */
+.sp-answer.is-motion { animation: sp-bob 3s ease-in-out infinite; }
+.sp-answer.is-motion .sp-input { animation: sp-nudge 3.6s ease-in-out infinite; transform-origin: 30% 50%; }
+@keyframes sp-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes sp-nudge {
+  0%, 72%, 100% { transform: translate(0, 0) rotate(0); }
+  76% { transform: translate(-5px, 0) rotate(-1.2deg); }
+  81% { transform: translate(5px, 0) rotate(1.2deg); }
+  86% { transform: translate(-3px, 0) rotate(-0.6deg); }
+  91% { transform: translate(2px, 0) rotate(0.3deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sp-answer.is-glow .sp-input, .sp-answer.is-motion, .sp-answer.is-motion .sp-input { animation: none; }
+  .sp-answer.is-glow .sp-input, .sp-answer.is-motion .sp-input { box-shadow: var(--shadow-sm), 0 0 0 4px var(--accent); }
+}
+/* Narrow posts: not enough room to centre the Atari mark between the
+   buttons, so it moves to the left edge. */
+@container (max-width: 460px) {
+  .sp-top { display: flex; justify-content: space-between; }
+  .sp-top > .sp-top-side:first-child { display: none; }
+}

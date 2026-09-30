@@ -3,6 +3,17 @@
 // (browser window: left nav, post, community sidebar) or in the phone app,
 // with numbered labels explaining each part of the game.
 
+const SCREENS = [
+  { id: 'play', label: 'Play' },
+  { id: 'splash', label: 'Splash test' },
+];
+// The two answer-box treatments under test.
+const SPLASH_VARIANTS = [
+  { id: 'glow', tag: 'A', title: 'Glow',
+    d: 'The answer box breathes with a soft yellow halo until it’s tapped. Calm, and reads as “type here”.' },
+  { id: 'motion', tag: 'B', title: 'Motion',
+    d: 'The answer bar floats gently and gives the box a small nudge every few seconds until it’s tapped. Catches the eye mid-scroll.' },
+];
 const VIEWS = [
   { id: 'computer', label: 'Computer' },
   { id: 'phone', label: 'Phone' },
@@ -190,8 +201,76 @@ function ComputerView(props) {
   );
 }
 
+// ---- Splash test ------------------------------------------------------
+// One test window: a dark feed you can scroll, with the game post in it.
+// Tapping the answer box (phone) or guessing (computer) hands off to Play;
+// "Back to splash" resets it.
+function SplashWindow({ variant, view, run }) {
+  const [started, setStarted] = React.useState(null);
+  React.useEffect(() => { setStarted(null); }, [run, view]);
+  const phone = view === 'phone';
+  const game = started
+    ? <PlayOnly keyboard={phone ? 'custom' : 'native'} topBar="auto" subreddit="mobygames" day={45}
+                initialKeyboardOpen={phone && !started.guess} firstGuess={started.guess} />
+    : <SplashTest attention={variant.id} touch={phone} onStart={(g) => setStarted({ guess: g || null })} />;
+
+  const feed = (
+    <div className="dfeed">
+      <div className="dghost" aria-hidden="true"><i style={{ width: '55%' }} /><i style={{ width: '80%' }} /><b /></div>
+      <article className="dpost">
+        <div className="dpost-head">
+          <span className="dsub"><img src="moby-mark.png" alt="" /></span>
+          <span><b>r/mobygames</b> · 3d ago<small>guess-mobys-game · App</small></span>
+        </div>
+        <div className="dpost-title">Guess Moby’s Game · Daily #45</div>
+        <div className="embed">{game}</div>
+        <div className="dpost-actions" aria-hidden="true"><span>▲ 1.1k ▼</span><span>204 comments</span><span>Share</span></div>
+      </article>
+      <div className="dghost" aria-hidden="true"><i style={{ width: '65%' }} /><b /></div>
+      <div className="dghost" aria-hidden="true"><i style={{ width: '40%' }} /><i style={{ width: '70%' }} /><b /></div>
+    </div>
+  );
+
+  return (
+    <figure className="sw">
+      <figcaption className="sw-cap">
+        <span className="sw-tag">{variant.tag}</span>
+        <span><b>{variant.title}</b><span className="d">{variant.d}</span></span>
+        {started && <button className="sw-back" onClick={() => setStarted(null)}>↺ Back to splash</button>}
+      </figcaption>
+      {phone
+        ? <div className="phone is-dark"><div className="statusbar"><span>9:41</span><span aria-hidden="true">▂▄▆ ▮</span></div>{feed}</div>
+        : <div className="sw-desk">{feed}</div>}
+    </figure>
+  );
+}
+
+function SplashCompare({ view, run }) {
+  const fitRef = React.useRef(null);
+  const [scale, setScale] = React.useState(1);
+  const natural = view === 'phone' ? null : 2 * 620 + 28;
+  React.useLayoutEffect(() => {
+    const el = fitRef.current;
+    if (!el || !natural) { setScale(1); return; }
+    const fit = () => setScale(Math.min(1, el.clientWidth / natural));
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [natural]);
+  const pair = (
+    <div className="sw-pair" style={natural ? { width: natural, transform: `scale(${scale})`, transformOrigin: 'top left' } : null}>
+      {SPLASH_VARIANTS.map(v => <SplashWindow key={v.id} variant={v} view={view} run={run} />)}
+    </div>
+  );
+  return (
+    <div className="sw-fit" ref={fitRef} style={natural ? { height: 860 * scale } : null}>{pair}</div>
+  );
+}
+
 function Preview() {
   const saved = React.useMemo(loadPrefs, []);
+  const [screen, setScreen] = React.useState(saved.screen || 'play');
   const [view, setView] = React.useState(saved.view || 'computer');
   const [w, setW] = React.useState(saved.w || 390);
   const [h, setH] = React.useState(saved.h || 512);
@@ -212,8 +291,8 @@ function Preview() {
     const r = document.documentElement.style;
     r.setProperty('--phone-w', w + 20 + 'px');
     r.setProperty('--embed-h', h + 'px');
-    savePrefs({ view, w, h, bar, labels });
-  }, [view, w, h, bar, labels]);
+    savePrefs({ screen, view, w, h, bar, labels });
+  }, [screen, view, w, h, bar, labels]);
 
   const props = { view, bar, run, labels, hot };
 
@@ -225,8 +304,17 @@ function Preview() {
 
       <aside className={`controls${sheet ? ' is-open' : ''}`}>
         <div>
-          <h1>Guess Moby’s Game · Play</h1>
-          <p className="lede">The daily game as a post in the feed. Switch between computer and phone to see how it sits in each.</p>
+          <h1>Guess Moby’s Game</h1>
+          <p className="lede">{screen === 'play'
+            ? 'The daily game as a post in the feed. Switch between computer and phone to see how it sits in each.'
+            : 'Two splash screens side by side. Scroll each feed and see which answer box you notice first.'}</p>
+        </div>
+
+        <div className="ctl">
+          <div className="ctl-label">Screen</div>
+          <div className="seg big">
+            {SCREENS.map(v => <button key={v.id} aria-pressed={screen === v.id} onClick={() => setScreen(v.id)}>{v.label}</button>)}
+          </div>
         </div>
 
         <div className="ctl">
@@ -239,12 +327,12 @@ function Preview() {
             : 'Computers type with their own keyboard in a normal text box.'}</p>
         </div>
 
-        <div className="ctl">
+        {screen === 'play' && <div className="ctl">
           <div className="ctl-label">Top bar</div>
           <div className="seg">
             {TOPBARS.map(t => <button key={t.id} aria-pressed={bar === t.id} onClick={() => setBar(t.id)}>{t.label}</button>)}
           </div>
-        </div>
+        </div>}
 
         <div className="ctl">
           <div className="ctl-label">Post height <b>{h}px</b></div>
@@ -263,10 +351,22 @@ function Preview() {
           </div>
         )}
 
-        <div className="seg"><button onClick={() => { setRun(r => r + 1); setSheet(false); }}>↺ Restart</button></div>
+        <div className="seg"><button onClick={() => { setRun(r => r + 1); setSheet(false); }}>{screen === 'play' ? '↺ Restart' : '↺ Reset both'}</button></div>
         <p className="note">Today’s answer is Sonic The Hedgehog 2, if you want to see a win.</p>
 
-        <div className="ctl">
+        {screen === 'splash' && (
+          <div className="ctl">
+            <div className="ctl-label">What’s being tested</div>
+            <ol className="key">
+              {SPLASH_VARIANTS.map(v => (
+                <li key={v.id}><span className="pin">{v.tag}</span><span><b>{v.title}</b><span className="d">{v.d}</span></span></li>
+              ))}
+            </ol>
+            <p className="note">Both stop as soon as the player taps the box, and stay still for anyone who has reduced motion turned on. {view === 'phone' ? 'Tapping the box opens the Play screen with the keyboard up.' : 'Typing a guess and pressing Guess starts the Play screen with that guess.'}</p>
+          </div>
+        )}
+
+        {screen === 'play' && <div className="ctl">
           <div className="ctl-label">What’s what
             <label style={{ display: 'inline-flex', gap: 6, alignItems: 'center', textTransform: 'none', letterSpacing: 0, fontWeight: 600, cursor: 'pointer' }}>
               <input id="show-labels" type="checkbox" checked={labels} onChange={e => setLabels(e.target.checked)} /> Show labels
@@ -287,15 +387,19 @@ function Preview() {
             })}
           </ol>
           <p className="note">Hover an item to outline it on the game. {view === 'phone' ? 'Tap the guess box to see the keyboard (4).' : ''}</p>
-        </div>
+        </div>}
       </aside>
 
       <main className="stage">
-        {view === 'phone' ? <PhoneView {...props} /> : <ComputerView {...props} />}
+        {screen === 'splash'
+          ? <SplashCompare view={view} run={run} />
+          : view === 'phone' ? <PhoneView {...props} /> : <ComputerView {...props} />}
         <p className="stage-cap">
-          {view === 'phone'
-            ? 'Phone app: the game fills the post’s width; the app sets its height.'
-            : 'Computer: the game sits in the post column between the community list and the sidebar.'}
+          {screen === 'splash'
+            ? 'Each window is its own feed: scroll it to judge how the answer box reads in passing.'
+            : view === 'phone'
+              ? 'Phone app: the game fills the post’s width; the app sets its height.'
+              : 'Computer: the game sits in the post column between the community list and the sidebar.'}
           {' '}The feed around it is a generic mock-up.
         </p>
       </main>

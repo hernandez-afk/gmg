@@ -3,7 +3,8 @@
 // only the clue board and guess keyboard, plus a small end card so a
 // round can finish and start over. Reuses PlayBoard / CLUES / isCorrect
 // from App.jsx.
-function PlayOnly({ topBar = 'auto', keyboard = 'auto', subreddit = 'retrogaming', day = 142 }) {
+function PlayOnly({ topBar = 'auto', keyboard = 'auto', subreddit = 'retrogaming', day = 142,
+                    initialKeyboardOpen = false, firstGuess = null }) {
   const [revealed, setRevealed] = React.useState(1);
   const [attempts, setAttempts] = React.useState([]);
   const [shake, setShake] = React.useState(false);
@@ -23,6 +24,12 @@ function PlayOnly({ topBar = 'auto', keyboard = 'auto', subreddit = 'retrogaming
     setRevealed(r => Math.min(CLUES.length, r + 1));
     if (next.filter(a => a.kind === 'miss').length >= 6) setTimeout(() => setResult('out'), 500);
   };
+
+  // A guess typed on the splash counts as the first guess here.
+  const sentFirst = React.useRef(false);
+  React.useEffect(() => {
+    if (firstGuess && !sentFirst.current) { sentFirst.current = true; handleGuess(firstGuess); }
+  }, []);
 
   const restart = () => {
     setRevealed(1); setAttempts([]); setResult(null); setRound(r => r + 1);
@@ -44,6 +51,7 @@ function PlayOnly({ topBar = 'auto', keyboard = 'auto', subreddit = 'retrogaming
         onReveal={() => {}}
         keyboard={keyboard}
         topBar={topBar}
+        initialKeyboardOpen={initialKeyboardOpen && round === 0}
       />
       {result && (
         <div className="play-end">
