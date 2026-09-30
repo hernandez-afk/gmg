@@ -136,17 +136,18 @@ function PhoneView(props) {
   );
 }
 
-// Fixed-size desktop mock; the stage's Fitter scales it.
-function ComputerView(props) {
+// Fixed-size desktop page mock (browser, community list, main column,
+// sidebar); the stage's Fitter scales it. `dark` matches dark mode.
+function DesktopShell({ sub, dark = false, side, children }) {
   return (
-    <div className="browser">
+    <div className={`browser${dark ? ' is-dark' : ''}`}>
       <div className="chrome" aria-hidden="true">
         <div className="dots"><i /><i /><i /></div>
-        <div className="url">r/retrogaming</div>
+        <div className="url">r/{sub}</div>
       </div>
       <div className="site-head" aria-hidden="true">
         <span className="site-mark" />
-        <div className="search">Search r/retrogaming</div>
+        <div className="search">Search r/{sub}</div>
         <span className="avatar" />
       </div>
       <div className="site-body">
@@ -155,40 +156,48 @@ function ComputerView(props) {
           <a><i />Popular</a>
           <a><i />Explore</a>
           <h4>Communities</h4>
-          <a className="on"><i style={{ background: 'var(--light-moby-blue)' }} />r/retrogaming</a>
+          <a className="on"><i style={{ background: 'var(--light-moby-blue)' }} />r/{sub}</a>
           <a><i />r/gamecollecting</a>
           <a><i />r/crtgaming</a>
           <a><i />r/SEGAGENESIS</a>
         </nav>
         <div className="desk-main">
-          <article className="desk-post">
-            <div className="post-head"><span className="sub-icon"><img src="moby-mark.png" alt="" /></span><b>r/retrogaming</b> · 3h</div>
-            <div className="post-title">Guess Moby’s Game — Day #142</div>
-            <Game {...props} />
-            <div className="actions">
-              <span className="pill">▲ 2.4k ▼</span>
-              <span className="pill">318 comments</span>
-              <span className="pill">Share</span>
-            </div>
-          </article>
-          <aside className="side" aria-hidden="true">
-            <div className="side-card">
-              <h3>r/retrogaming</h3>
-              <p>Old games, old hardware, and the stories behind them.</p>
-              <div className="stats">
-                <div><b>1.2M</b><span>members</span></div>
-                <div><b>4.8k</b><span>online</span></div>
-              </div>
-            </div>
-            <div className="side-card">
-              <h3>Daily game</h3>
-              <div className="rule">Guess Moby’s Game · a new game every day</div>
-              <div className="rule">Five clues, six guesses</div>
-            </div>
-          </aside>
+          <div className="desk-col">{children}</div>
+          <aside className="side" aria-hidden="true">{side}</aside>
         </div>
       </div>
     </div>
+  );
+}
+
+function ComputerView(props) {
+  return (
+    <DesktopShell sub="retrogaming" side={<>
+      <div className="side-card">
+        <h3>r/retrogaming</h3>
+        <p>Old games, old hardware, and the stories behind them.</p>
+        <div className="stats">
+          <div><b>1.2M</b><span>members</span></div>
+          <div><b>4.8k</b><span>online</span></div>
+        </div>
+      </div>
+      <div className="side-card">
+        <h3>Daily game</h3>
+        <div className="rule">Guess Moby’s Game · a new game every day</div>
+        <div className="rule">Five clues, six guesses</div>
+      </div>
+    </>}>
+      <article className="desk-post">
+        <div className="post-head"><span className="sub-icon"><img src="moby-mark.png" alt="" /></span><b>r/retrogaming</b> · 3h</div>
+        <div className="post-title">Guess Moby’s Game — Day #142</div>
+        <Game {...props} />
+        <div className="actions">
+          <span className="pill">▲ 2.4k ▼</span>
+          <span className="pill">318 comments</span>
+          <span className="pill">Share</span>
+        </div>
+      </article>
+    </DesktopShell>
   );
 }
 
@@ -206,7 +215,7 @@ function SplashWindow({ variant, view, run, onPreview }) {
     : <SplashTest attention={variant.id} touch={phone} onStart={(g) => setStarted({ guess: g || null })} />;
 
   const feed = (
-    <div className="dfeed">
+    <div className={`dfeed${phone ? '' : ' is-inline'}`}>
       <div className="dghost" aria-hidden="true"><i style={{ width: '55%' }} /><i style={{ width: '80%' }} /><b /></div>
       <article className="dpost">
         <div className="dpost-head">
@@ -242,7 +251,21 @@ function SplashWindow({ variant, view, run, onPreview }) {
       </figcaption>
       {phone
         ? <div className="phone is-dark"><div className="statusbar"><span>9:41</span><span aria-hidden="true">▂▄▆ ▮</span></div>{feed}</div>
-        : <div className="sw-desk">{feed}</div>}
+        : <DesktopShell sub="mobygames" dark side={<>
+            <div className="side-card">
+              <h3>r/mobygames</h3>
+              <p>The world’s largest game database, and its community.</p>
+              <div className="stats">
+                <div><b>214k</b><span>members</span></div>
+                <div><b>1.5k</b><span>online</span></div>
+              </div>
+            </div>
+            <div className="side-card">
+              <h3>Daily game</h3>
+              <div className="rule">Guess Moby’s Game · a new game every day</div>
+              <div className="rule">Four clues to name it</div>
+            </div>
+          </>}>{feed}</DesktopShell>}
     </figure>
   );
 }
@@ -330,6 +353,13 @@ function Preview() {
     r.setProperty('--embed-h', h + 'px');
     savePrefs({ screen, view, w, h, bar, labels });
   }, [screen, view, w, h, bar, labels]);
+
+  // A full desktop page is too wide to show five side by side readably, so
+  // the computer splash test opens on one version (tabs switch; Show all
+  // still lays them side by side).
+  React.useEffect(() => {
+    if (screen === 'splash' && view === 'computer' && !focus) setFocus(SPLASH_VARIANTS[0].id);
+  }, [screen, view]);
 
   const props = { view, bar, run, labels, hot };
 
