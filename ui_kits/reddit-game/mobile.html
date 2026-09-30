@@ -187,7 +187,20 @@
       .sw .phone { height: 88vh; min-height: 0; }
     }
 
-    /* ---- Zoom (Zoomer) ---- */
+    /* ---- Focus: one splash version previewed on its own ---- */
+    .sw-name { all: unset; display: inline-flex; align-items: baseline; gap: 8px; cursor: pointer; border-radius: 6px; }
+    .sw-name:hover b { text-decoration: underline; text-underline-offset: 3px; }
+    .sw-name:focus-visible { outline: 2px solid var(--light-moby-blue); outline-offset: 3px; }
+    .sw-open { font: 700 11px/1 var(--font-ui); color: var(--light-moby-blue); padding: 3px 7px; border-radius: 9999px; background: #fff; border: 1.5px solid var(--shell-line); }
+    .sw-tabs { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+    .sw-tabs button { display: inline-flex; align-items: center; gap: 8px; border: 1.5px solid var(--shell-line); background: #fff; color: var(--shell-ink); border-radius: 9999px; padding: 5px 12px 5px 5px; font: 700 13px/1 var(--font-ui); cursor: pointer; }
+    .sw-tabs button .sw-tag { width: 22px; height: 22px; font-size: 11px; }
+    .sw-tabs button.is-on { background: var(--shell-ink); border-color: var(--shell-ink); color: #fff; }
+    .sw-tabs button.is-on .sw-tag { background: #fff; color: var(--shell-ink); }
+    .sw-tabs .sw-all { padding: 7px 12px; }
+    .sw-tabs button:focus-visible { outline: 2px solid var(--light-moby-blue); outline-offset: 2px; }
+
+    /* ---- Fit (Fitter) ---- */
     .zm { width: 100%; overflow: auto; overscroll-behavior: contain; }
     .zm-size { margin: 0 auto; position: relative; }
     .zm-inner { width: max-content; transform-origin: top left; }

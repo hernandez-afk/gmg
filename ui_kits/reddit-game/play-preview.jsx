@@ -136,7 +136,7 @@ function PhoneView(props) {
   );
 }
 
-// Fixed-size desktop mock; the stage's Zoomer scales it.
+// Fixed-size desktop mock; the stage's Fitter scales it.
 function ComputerView(props) {
   return (
     <div className="browser">
@@ -196,7 +196,7 @@ function ComputerView(props) {
 // One test window: a dark feed you can scroll, with the game post in it.
 // Tapping the answer box (phone) or guessing (computer) hands off to Play;
 // "Back to splash" resets it.
-function SplashWindow({ variant, view, run }) {
+function SplashWindow({ variant, view, run, onPreview }) {
   const [started, setStarted] = React.useState(null);
   React.useEffect(() => { setStarted(null); }, [run, view]);
   const phone = view === 'phone';
@@ -228,7 +228,9 @@ function SplashWindow({ variant, view, run }) {
         <span className="sw-tag">{variant.tag}</span>
         <span className="sw-text">
           <span className="sw-title">
-            <b>{variant.title}</b>
+            {onPreview
+              ? <button className="sw-name" onClick={onPreview} title="Preview this version on its own"><b>{variant.title}</b><span className="sw-open">⤢ Preview</span></button>
+              : <b>{variant.title}</b>}
             {/* Always in the layout (hidden until used) so pressing the
                 game never resizes the caption or the window. */}
             <button className="sw-back" onClick={() => setStarted(null)}
@@ -245,23 +247,38 @@ function SplashWindow({ variant, view, run }) {
   );
 }
 
-function SplashCompare({ view, run }) {
+// All versions side by side, or just the one being previewed.
+function SplashCompare({ view, run, focus, onFocus }) {
+  const list = focus ? SPLASH_VARIANTS.filter(v => v.id === focus) : SPLASH_VARIANTS;
   return (
     <div className="sw-pair">
-      {SPLASH_VARIANTS.map(v => <SplashWindow key={v.id} variant={v} view={view} run={run} />)}
+      {list.map(v => <SplashWindow key={v.id} variant={v} view={view} run={run}
+                                   onPreview={focus ? null : () => onFocus(v.id)} />)}
     </div>
   );
 }
 
-// ---- Zoom -------------------------------------------------------------
-// Scales the stage content. "fit" = as large as fits the stage's width and
-// the visible height; a number = that exact scale, with the stage
-// scrolling (both ways) to pan around when it's bigger than the room.
-const ZOOM_STEPS = [0.4, 0.5, 0.6, 0.75, 0.9, 1, 1.25, 1.5];
-function Zoomer({ zoom, onFit, children }) {
+// Tabs shown while one version is previewed on its own.
+function SplashFocusBar({ focus, onFocus }) {
+  return (
+    <div className="sw-tabs" role="tablist" aria-label="Splash versions">
+      {SPLASH_VARIANTS.map(v => (
+        <button key={v.id} role="tab" aria-selected={focus === v.id} className={focus === v.id ? 'is-on' : ''} onClick={() => onFocus(v.id)}>
+          <span className="sw-tag">{v.tag}</span>{v.title}
+        </button>
+      ))}
+      <button className="sw-all" onClick={() => onFocus(null)}>▦ Show all</button>
+    </div>
+  );
+}
+
+// ---- Fit --------------------------------------------------------------
+// Scales the stage content to fit the stage's width and the visible
+// height (never above `max`), so nothing needs scrolling.
+function Fitter({ max = 1, children }) {
   const outerRef = React.useRef(null);
   const innerRef = React.useRef(null);
-  const [m, setM] = React.useState({ w: 0, h: 0, fit: 1, availH: 600 });
+  const [m, setM] = React.useState({ w: 0, h: 0, s: 1 });
   React.useLayoutEffect(() => {
     const outer = outerRef.current, inner = innerRef.current;
     if (!outer || !inner) return;
@@ -269,21 +286,19 @@ function Zoomer({ zoom, onFit, children }) {
       const w = inner.offsetWidth, h = inner.offsetHeight;
       const top = outer.getBoundingClientRect().top + window.scrollY;
       const availH = Math.max(320, window.innerHeight - top - 56);
-      const fit = Math.min(1, outer.clientWidth / w, availH / h);
-      setM(p => (p.w === w && p.h === h && Math.abs(p.fit - fit) < 0.001 && p.availH === availH ? p : { w, h, fit, availH }));
+      const sc = Math.min(max, outer.clientWidth / w, availH / h);
+      setM(p => (p.w === w && p.h === h && Math.abs(p.s - sc) < 0.001 ? p : { w, h, s: sc }));
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(outer); ro.observe(inner);
     window.addEventListener('resize', measure);
     return () => { ro.disconnect(); window.removeEventListener('resize', measure); };
-  }, []);
-  React.useEffect(() => { onFit && onFit(m.fit); }, [m.fit]);
-  const s = zoom === 'fit' ? m.fit : zoom;
+  }, [max]);
   return (
-    <div className="zm" ref={outerRef} style={{ height: m.h ? Math.min(m.h * s, m.availH) + 2 : undefined }}>
-      <div className="zm-size" style={{ width: m.w * s || undefined, height: m.h * s || undefined }}>
-        <div className="zm-inner" ref={innerRef} style={{ transform: `scale(${s})` }}>{children}</div>
+    <div className="zm" ref={outerRef} style={{ height: m.h ? m.h * m.s + 2 : undefined }}>
+      <div className="zm-size" style={{ width: m.w * m.s || undefined, height: m.h * m.s || undefined }}>
+        <div className="zm-inner" ref={innerRef} style={{ transform: `scale(${m.s})` }}>{children}</div>
       </div>
     </div>
   );
@@ -292,14 +307,7 @@ function Zoomer({ zoom, onFit, children }) {
 function Preview() {
   const saved = React.useMemo(loadPrefs, []);
   const [screen, setScreen] = React.useState(saved.screen || 'play');
-  const [zoom, setZoom] = React.useState('fit');
-  const [fitScale, setFitScale] = React.useState(1);
-  const shown = zoom === 'fit' ? fitScale : zoom;
-  const zoomBy = (dir) => {
-    const cur = shown;
-    const next = dir > 0 ? ZOOM_STEPS.find(z => z > cur + 0.001) : [...ZOOM_STEPS].reverse().find(z => z < cur - 0.001);
-    if (next) setZoom(next);
-  };
+  const [focus, setFocus] = React.useState(null); // splash version previewed on its own
   const [view, setView] = React.useState(saved.view || 'computer');
   const [w, setW] = React.useState(saved.w || 390);
   const [h, setH] = React.useState(saved.h || 512);
@@ -346,17 +354,6 @@ function Preview() {
           </div>
         </div>
 
-        <div className="ctl only-desktop">
-          <div className="ctl-label">Zoom <b>{Math.round(shown * 100)}%{zoom === 'fit' ? ' · fit' : ''}</b></div>
-          <div className="seg">
-            <button onClick={() => zoomBy(-1)} aria-label="Zoom out">−</button>
-            <button onClick={() => zoomBy(1)} aria-label="Zoom in">+</button>
-            <button aria-pressed={zoom === 'fit'} onClick={() => setZoom('fit')}>Fit</button>
-            <button aria-pressed={zoom === 1} onClick={() => setZoom(1)}>100%</button>
-          </div>
-          {zoom !== 'fit' && shown > fitScale + 0.001 && <p className="note">Scroll or drag the scrollbars to move around.</p>}
-        </div>
-
         <div className="ctl">
           <div className="ctl-label">Device</div>
           <div className="seg big">
@@ -399,9 +396,14 @@ function Preview() {
             <div className="ctl-label">What’s being tested</div>
             <ol className="key">
               {SPLASH_VARIANTS.map(v => (
-                <li key={v.id}><span className="pin">{v.tag}</span><span><b>{v.title}</b><span className="d">{v.d}</span></span></li>
+                <li key={v.id} tabIndex={0} role="button" className={focus === v.id ? 'is-hot' : ''} style={{ cursor: 'pointer' }}
+                    onClick={() => setFocus(focus === v.id ? null : v.id)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFocus(focus === v.id ? null : v.id); } }}>
+                  <span className="pin">{v.tag}</span><span><b>{v.title}</b><span className="d">{v.d}</span></span>
+                </li>
               ))}
             </ol>
+            <p className="note">Press a version’s name (here or above its window) to preview it on its own, larger. “Show all” goes back to the side-by-side view.</p>
             <p className="note">The logo floats on every version, as it does live. Each effect stops as soon as the player taps the box, and stay still for anyone who has reduced motion turned on. {view === 'phone' ? 'Tapping the box opens the Play screen with the keyboard up.' : 'Typing a guess and pressing Guess starts the Play screen with that guess.'}</p>
           </div>
         )}
@@ -431,11 +433,12 @@ function Preview() {
       </aside>
 
       <main className="stage">
-        <Zoomer key={`${screen}-${view}`} zoom={zoom} onFit={setFitScale}>
+        {screen === 'splash' && focus && <SplashFocusBar focus={focus} onFocus={setFocus} />}
+        <Fitter key={`${screen}-${view}-${focus}`} max={screen === 'splash' && focus ? 1.6 : 1}>
           {screen === 'splash'
-            ? <SplashCompare view={view} run={run} />
+            ? <SplashCompare view={view} run={run} focus={focus} onFocus={setFocus} />
             : view === 'phone' ? <PhoneView {...props} /> : <ComputerView {...props} />}
-        </Zoomer>
+        </Fitter>
         <p className="stage-cap">
           {screen === 'splash'
             ? 'Each window is its own feed: scroll it to judge how the answer box reads in passing.'
