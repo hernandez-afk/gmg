@@ -13,6 +13,8 @@ const SPLASH_VARIANTS = [
     d: 'The answer box breathes with a soft yellow halo until it’s tapped. Calm, and reads as “type here”.' },
   { id: 'motion', tag: 'B', title: 'Motion',
     d: 'The answer bar floats gently and gives the box a small nudge every few seconds until it’s tapped. Catches the eye mid-scroll.' },
+  { id: 'type', tag: 'C', title: 'Live caret', pick: true,
+    d: 'A blinking cursor types out the prompt inside the box, so it reads as “type here”, not just “look here”. My pick.' },
 ];
 const VIEWS = [
   { id: 'computer', label: 'Computer' },
@@ -246,25 +248,28 @@ function SplashWindow({ variant, view, run }) {
 }
 
 function SplashCompare({ view, run }) {
+  // All versions side by side at natural size, scaled down to fit the stage.
   const fitRef = React.useRef(null);
-  const [scale, setScale] = React.useState(1);
-  const natural = view === 'phone' ? null : 2 * 620 + 28;
+  const pairRef = React.useRef(null);
+  const [fit, setFit] = React.useState({ scale: 1, h: 0 });
   React.useLayoutEffect(() => {
-    const el = fitRef.current;
-    if (!el || !natural) { setScale(1); return; }
-    const fit = () => setScale(Math.min(1, el.clientWidth / natural));
-    fit();
-    const ro = new ResizeObserver(fit);
-    ro.observe(el);
+    const el = fitRef.current, pair = pairRef.current;
+    if (!el || !pair) return;
+    const measure = () => {
+      const scale = Math.min(1, el.clientWidth / pair.scrollWidth);
+      setFit(f => (Math.abs(f.scale - scale) < 0.001 && f.h === pair.offsetHeight ? f : { scale, h: pair.offsetHeight }));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el); ro.observe(pair);
     return () => ro.disconnect();
-  }, [natural]);
-  const pair = (
-    <div className="sw-pair" style={natural ? { width: natural, transform: `scale(${scale})`, transformOrigin: 'top left' } : null}>
-      {SPLASH_VARIANTS.map(v => <SplashWindow key={v.id} variant={v} view={view} run={run} />)}
-    </div>
-  );
+  }, [view]);
   return (
-    <div className="sw-fit" ref={fitRef} style={natural ? { height: 860 * scale } : null}>{pair}</div>
+    <div className="sw-fit" ref={fitRef} style={{ height: fit.h * fit.scale || undefined }}>
+      <div className="sw-pair" ref={pairRef} style={{ transform: `scale(${fit.scale})` }}>
+        {SPLASH_VARIANTS.map(v => <SplashWindow key={v.id} variant={v} view={view} run={run} />)}
+      </div>
+    </div>
   );
 }
 
@@ -307,7 +312,7 @@ function Preview() {
           <h1>Guess Moby’s Game</h1>
           <p className="lede">{screen === 'play'
             ? 'The daily game as a post in the feed. Switch between computer and phone to see how it sits in each.'
-            : 'Two splash screens side by side. Scroll each feed and see which answer box you notice first.'}</p>
+            : 'Three splash screens side by side. Scroll each feed and see which answer box you notice first.'}</p>
         </div>
 
         <div className="ctl">
@@ -351,7 +356,7 @@ function Preview() {
           </div>
         )}
 
-        <div className="seg"><button onClick={() => { setRun(r => r + 1); setSheet(false); }}>{screen === 'play' ? '↺ Restart' : '↺ Reset both'}</button></div>
+        <div className="seg"><button onClick={() => { setRun(r => r + 1); setSheet(false); }}>{screen === 'play' ? '↺ Restart' : '↺ Reset all'}</button></div>
         <p className="note">Today’s answer is Sonic The Hedgehog 2, if you want to see a win.</p>
 
         {screen === 'splash' && (
@@ -362,7 +367,7 @@ function Preview() {
                 <li key={v.id}><span className="pin">{v.tag}</span><span><b>{v.title}</b><span className="d">{v.d}</span></span></li>
               ))}
             </ol>
-            <p className="note">Both stop as soon as the player taps the box, and stay still for anyone who has reduced motion turned on. {view === 'phone' ? 'Tapping the box opens the Play screen with the keyboard up.' : 'Typing a guess and pressing Guess starts the Play screen with that guess.'}</p>
+            <p className="note">The logo floats on all three, as it does live. Each effect stops as soon as the player taps the box, and stay still for anyone who has reduced motion turned on. {view === 'phone' ? 'Tapping the box opens the Play screen with the keyboard up.' : 'Typing a guess and pressing Guess starts the Play screen with that guess.'}</p>
           </div>
         )}
 

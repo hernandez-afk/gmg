@@ -401,8 +401,15 @@ input.guess::placeholder { color: rgba(0,91,111,0.45); font-weight: 600; }
 .sp-stage { position: relative; width: var(--sp-col); flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 .sp-logo {
   position: absolute; left: 50%; top: 0; z-index: 2;
-  width: var(--sp-logo-w); height: auto; transform: translateX(-50%);
+  width: var(--sp-logo-w); transform: translateX(-50%);
   pointer-events: none; user-select: none;
+}
+.sp-logo-img { display: block; width: 100%; height: auto; transform-origin: 50% 60%; animation: sp-logo-float 3.2s ease-in-out infinite; will-change: transform; }
+@keyframes sp-logo-float {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25%      { transform: translate(2px, -6px) rotate(-1.6deg); }
+  50%      { transform: translate(0, -2px) rotate(0.8deg); }
+  75%      { transform: translate(-2px, -5px) rotate(-0.6deg); }
 }
 /* Card starts about halfway down the logo so the logo overlaps its top. */
 .sp-clue { flex: 1 1 auto; min-height: 0; margin-top: calc(var(--sp-logo-w) * 0.698 * 0.52); padding: 6px; position: relative; overflow: hidden; }
@@ -425,7 +432,18 @@ input.guess::placeholder { color: rgba(0,91,111,0.45); font-weight: 600; }
 }
 
 .sp-answer { width: var(--sp-col); flex: none; display: flex; gap: 10px; align-items: stretch; margin-top: 4px; }
+.sp-field { position: relative; flex: 1; min-width: 0; display: flex; }
 .sp-input { flex: 1; min-width: 0; padding: 14px 16px; font-size: 17px; }
+/* C · Live caret: typewriter prompt + blinking caret over the empty box. */
+.sp-typing {
+  position: absolute; left: 18px; top: 50%; transform: translateY(-50%);
+  display: flex; align-items: center; gap: 1px;
+  font: 600 17px/1.3 var(--font-ui);
+  color: color-mix(in srgb, var(--ink-dark) 60%, transparent);
+  pointer-events: none; white-space: nowrap;
+}
+.sp-caret { width: 2.5px; height: 1.25em; border-radius: 1px; background: var(--ink-dark); animation: kb-blink 1s steps(1) infinite; }
+.sp-answer.is-type .sp-input { border-color: var(--base-secondary); box-shadow: var(--shadow-sm), 0 0 0 3px color-mix(in srgb, var(--accent) 85%, transparent); }
 .sp-go { min-width: 84px; font-size: 16px; }
 
 .sp-how {
@@ -471,6 +489,7 @@ input.guess::placeholder { color: rgba(0,91,111,0.45); font-weight: 600; }
   91% { transform: translate(2px, 0) rotate(0.3deg); }
 }
 @media (prefers-reduced-motion: reduce) {
+  .sp-logo-img, .sp-caret { animation: none; }
   .sp-answer.is-glow .sp-input, .sp-answer.is-motion, .sp-answer.is-motion .sp-input { animation: none; }
   .sp-answer.is-glow .sp-input, .sp-answer.is-motion .sp-input { box-shadow: var(--shadow-sm), 0 0 0 4px var(--accent); }
 }

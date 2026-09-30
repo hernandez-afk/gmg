@@ -4,6 +4,8 @@
 //
 //   attention="glow"   — the box breathes with a soft accent halo
 //   attention="motion" — the box gently bobs and nudges every few seconds
+//   attention="type"   — a blinking caret types out the prompt, so the box
+//                        reads as "you can type here", not just "look here"
 //   attention="none"   — as live today
 //
 // Both treatments stop once the player focuses the box (their job is done)
@@ -36,7 +38,8 @@ function SplashTest({ attention = 'none', day = 45, date = 'September 30', subre
         </div>
 
         <div className="sp-stage">
-          <img className="sp-logo" src="logo-moby.png" alt="Guess Moby's Game" draggable={false} />
+          {/* Logo floats on every version, as on the live splash. */}
+          <div className="sp-logo"><img className="sp-logo-img" src="logo-moby.png" alt="Guess Moby's Game" draggable={false} /></div>
           <div className="card sp-clue">
             <div className="sp-shot" aria-label="Clue 1, blurred screenshot" role="img" />
             <span className="sp-cluepill">Clue 1 of 4</span>
@@ -44,10 +47,11 @@ function SplashTest({ attention = 'none', day = 45, date = 'September 30', subre
         </div>
 
         <div className={`sp-answer${engaged ? '' : ` is-${attention}`}`}>
+          <span className="sp-field">
           <input
             ref={inputRef}
             className="guess sp-input"
-            placeholder="Name the game…"
+            placeholder={attention === 'type' && !engaged ? '' : 'Name the game…'}
             value={value}
             readOnly={touch}
             inputMode={touch ? 'none' : undefined}
@@ -56,6 +60,8 @@ function SplashTest({ attention = 'none', day = 45, date = 'September 30', subre
             onPointerDown={() => setEngaged(true)}
             onKeyDown={(e) => { if (e.key === 'Enter') submit(); }}
           />
+          {attention === 'type' && !engaged && !value && <TypingPrompt />}
+          </span>
           <button className="btn btn-primary sp-go" onClick={() => (value.trim() ? submit() : touch ? onStart && onStart() : inputRef.current && inputRef.current.focus())}>Guess</button>
         </div>
 
@@ -70,6 +76,32 @@ function SplashTest({ attention = 'none', day = 45, date = 'September 30', subre
         </div>
       </div>
     </div>
+  );
+}
+
+// Typewriter prompt with a blinking caret, drawn over the empty input.
+const SP_PROMPTS = ['Name the game…', 'Which game is this?', 'Type your guess…'];
+function TypingPrompt() {
+  const reduced = React.useMemo(() => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), []);
+  const [text, setText] = React.useState(reduced ? SP_PROMPTS[0] : '');
+  React.useEffect(() => {
+    if (reduced) return;
+    let i = 0, n = 0, dir = 1, t;
+    const step = () => {
+      const full = SP_PROMPTS[i];
+      n += dir;
+      setText(full.slice(0, n));
+      if (dir > 0 && n >= full.length) { dir = -1; t = setTimeout(step, 1800); return; }
+      if (dir < 0 && n <= 0) { dir = 1; i = (i + 1) % SP_PROMPTS.length; t = setTimeout(step, 400); return; }
+      t = setTimeout(step, dir > 0 ? 75 : 30);
+    };
+    t = setTimeout(step, 500);
+    return () => clearTimeout(t);
+  }, [reduced]);
+  return (
+    <span className="sp-typing" aria-hidden="true">
+      <span>{text}</span><span className="sp-caret" />
+    </span>
   );
 }
 
