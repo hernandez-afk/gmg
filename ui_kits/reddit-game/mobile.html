@@ -156,7 +156,7 @@
 
     /* ---- Splash test: two dark feed windows side by side ---------- */
     .sw-fit { width: 100%; overflow: hidden; display: flex; justify-content: center; align-items: flex-start; }
-    .sw-pair { flex: none; width: max-content; display: grid; gap: 28px; align-items: start; transform-origin: top center; }
+    .sw-pair { flex: none; width: max-content; display: flex; gap: 24px; align-items: flex-start; transform-origin: top center; }
     .sw { margin: 0; display: flex; flex-direction: column; gap: 12px; }
     /* width 0 + min-width 100%: the caption takes the window's width and
        never pushes it wider, so the pair's scale never changes. */
@@ -166,7 +166,7 @@
     .sw-cap .d { display: block; margin-top: 2px; font: 500 12px/1.45 var(--font-ui); color: var(--shell-muted); max-width: 52ch; }
     .sw-tag { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--shell-ink); color: #fff; font: 800 12px/1 var(--font-ui); }
     .sw-back { flex: none; border: 1.5px solid var(--shell-line); background: #fff; border-radius: 8px; padding: 5px 9px; font: 600 12px/1.2 var(--font-ui); cursor: pointer; white-space: nowrap; }
-    .sw-desk { width: 540px; height: 760px; border-radius: 14px; overflow: hidden; box-shadow: 0 30px 60px -30px rgba(0,0,0,0.5); display: flex; }
+    .sw-desk { width: 460px; height: 760px; border-radius: 14px; overflow: hidden; box-shadow: 0 30px 60px -30px rgba(0,0,0,0.5); display: flex; }
     .phone.is-dark { background: #0e1113; }
     .phone.is-dark .statusbar { background: #0e1113; color: #f2f2f2; }
     .dfeed { flex: 1; min-height: 0; overflow-y: auto; background: #0e1113; color: #f2f4f5; padding: 12px 0 40px; -webkit-overflow-scrolling: touch; }

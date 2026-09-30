@@ -261,33 +261,28 @@ function SplashWindow({ variant, view, run }) {
 }
 
 function SplashCompare({ view, run }) {
-  // All versions side by side at natural size, scaled down to fit the stage.
+  // All versions in one row, scaled so the whole row fits the stage's width
+  // and the visible height — no scrolling to compare.
   const fitRef = React.useRef(null);
   const pairRef = React.useRef(null);
   const [fit, setFit] = React.useState({ scale: 1, h: 0 });
-  // One row while it stays readable; otherwise wrap to two rows, then to two columns.
-  const [cols, setCols] = React.useState(SPLASH_VARIANTS.length);
-  React.useLayoutEffect(() => { setCols(SPLASH_VARIANTS.length); }, [view]);
   React.useLayoutEffect(() => {
     const el = fitRef.current, pair = pairRef.current;
     if (!el || !pair) return;
     const measure = () => {
-      const scale = Math.min(1, el.clientWidth / pair.scrollWidth);
-      if (scale < 0.6 && cols > 2) {
-        const half = Math.ceil(SPLASH_VARIANTS.length / 2);
-        setCols(cols > half ? half : 2);
-        return;
-      }
+      const availH = window.innerHeight - el.getBoundingClientRect().top - 56; // leave room for the caption
+      const scale = Math.min(1, el.clientWidth / pair.scrollWidth, availH / pair.offsetHeight);
       setFit(f => (Math.abs(f.scale - scale) < 0.001 && f.h === pair.offsetHeight ? f : { scale, h: pair.offsetHeight }));
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el); ro.observe(pair);
-    return () => ro.disconnect();
-  }, [view, cols]);
+    window.addEventListener('resize', measure);
+    return () => { ro.disconnect(); window.removeEventListener('resize', measure); };
+  }, [view]);
   return (
     <div className="sw-fit" ref={fitRef} style={{ height: fit.h * fit.scale || undefined }}>
-      <div className="sw-pair" ref={pairRef} style={{ transform: `scale(${fit.scale})`, gridTemplateColumns: `repeat(${cols}, max-content)` }}>
+      <div className="sw-pair" ref={pairRef} style={{ transform: `scale(${fit.scale})` }}>
         {SPLASH_VARIANTS.map(v => <SplashWindow key={v.id} variant={v} view={view} run={run} />)}
       </div>
     </div>

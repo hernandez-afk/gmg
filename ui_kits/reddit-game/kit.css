@@ -451,8 +451,7 @@ input.guess::placeholder { color: rgba(0,91,111,0.45); font-weight: 600; }
    the ring stays the same width all the way round. */
 .sp-answer.is-type .sp-input { outline: 3px solid var(--accent); outline-offset: 3px; }
 .sp-answer.is-type { gap: 14px; }  /* room for the ring before the Guess button */
-/* E · Glow + caret: the breathing halo is the ring, so drop C's outline. */
-.sp-answer.is-glow.is-type .sp-input { outline: none; }
+/* E · Glow + caret: the glow's breathing ring replaces C's fixed one. */
 .sp-go { min-width: 84px; font-size: 16px; }
 @container (max-width: 400px) {
   .sp-answer { gap: 8px; }
@@ -488,15 +487,21 @@ input.guess::placeholder { color: rgba(0,91,111,0.45); font-weight: 600; }
 @container (max-height: 440px) { .sp-how, .sp-signin { display: none; } }
 
 /* ---- Attention treatments on the answer box ---- */
-/* A · Glow: a soft accent halo that breathes. */
+/* A · Glow: an even ring (outline, so it follows the corners and isn't
+   covered by the drop shadow) plus a soft halo that breathes. The halo is
+   kept within the post's side padding and the gap before the Guess
+   button, so nothing clips it. */
+.sp-answer.is-glow { gap: 16px; }
 .sp-answer.is-glow .sp-input {
-  border-color: var(--base-secondary);
+  --sp-halo: 0 0 12px 2px;
+  outline: 3px solid transparent; outline-offset: 3px;
   animation: sp-glow 2.2s ease-in-out infinite;
 }
 @keyframes sp-glow {
-  0%, 100% { box-shadow: var(--shadow-sm), 0 0 0 0 transparent, 0 0 0 0 transparent; }
-  50%      { box-shadow: var(--shadow-sm), 0 0 0 4px var(--accent), 0 0 24px 8px color-mix(in srgb, var(--accent) 65%, transparent); }
+  0%, 100% { outline-color: color-mix(in srgb, var(--accent) 25%, transparent); box-shadow: var(--shadow-sm), 0 0 0 0 transparent; }
+  50%      { outline-color: var(--accent); box-shadow: var(--shadow-sm), var(--sp-halo) color-mix(in srgb, var(--accent) 70%, transparent); }
 }
+@container (max-width: 300px) { .sp-answer.is-glow .sp-input { --sp-halo: 0 0 8px 1px; } }
 /* B · Motion: the bar floats gently; the box gives a small nudge every few seconds. */
 .sp-answer.is-motion { animation: sp-bob 3s ease-in-out infinite; }
 .sp-answer.is-motion .sp-input { animation: sp-nudge 3.6s ease-in-out infinite; transform-origin: 30% 50%; }
@@ -511,7 +516,7 @@ input.guess::placeholder { color: rgba(0,91,111,0.45); font-weight: 600; }
 @media (prefers-reduced-motion: reduce) {
   .sp-logo-img, .sp-caret { animation: none; }
   .sp-answer.is-glow .sp-input, .sp-answer.is-motion, .sp-answer.is-motion .sp-input { animation: none; }
-  .sp-answer.is-glow .sp-input, .sp-answer.is-motion .sp-input { box-shadow: var(--shadow-sm), 0 0 0 4px var(--accent); }
+  .sp-answer.is-glow .sp-input, .sp-answer.is-motion .sp-input { outline: 3px solid var(--accent); outline-offset: 3px; }
 }
 /* Narrow posts: not enough room to centre the Atari mark between the
    buttons, so it moves to the left edge. */
